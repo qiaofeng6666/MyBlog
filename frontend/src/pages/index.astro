@@ -1,0 +1,29 @@
+---
+// frontend/src/pages/index.astro
+import { getCollection } from 'astro:content';
+import BlogLayout from '../layouts/BlogLayout.astro';
+
+// 1. 获取所有 blog 文章
+const allPosts = await getCollection('blog');
+
+// 2. 按日期倒序排列
+const posts = allPosts.sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+
+<BlogLayout title="我的博客首页">
+  <h1>文章列表</h1>
+  <ul>
+    {posts.map((post) => (
+      <li>
+        <a href={`/posts/${post.id}/`}>
+          {post.data.title}
+          <small style="margin-left: .5rem; color: #666;">
+            {post.data.pubDate.toLocaleDateString()}
+          </small>
+        </a>
+      </li>
+    ))}
+  </ul>
+</BlogLayout>

@@ -1,0 +1,8 @@
+# 创建配置文件 (Windows 记事本或 VS Code 都行)
+name = "my-blog-api"
+main = "src/index.ts"
+compatibility_date = "2026-06-26"
+
+# 这里的变量可以在 Cloudflare 控制台里改，这里先写个示例
+[vars]
+GITHUB_REPO = "qiaofeng6666/MyBlog" # 例如: octocat/MyBlog

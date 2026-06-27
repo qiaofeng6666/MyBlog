@@ -1,0 +1,32 @@
+---
+// frontend/src/pages/posts/[id].astro
+import { getCollection, render } from 'astro:content';
+import BlogLayout from '../../layouts/BlogLayout.astro';
+
+// 1. 为每一个集合条目生成一个静态路径
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { id: post.id },   // URL 中的 id
+    props: { post },           // 传给页面模板的 props
+  }));
+}
+
+// 2. 从 props 拿到当前这篇文章
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<BlogLayout title={post.data.title}>
+  <article>
+    <header>
+      <h1>{post.data.title}</h1>
+      <p style="color: #666;">
+        发布于：{post.data.pubDate.toLocaleDateString()}
+      </p>
+    </header>
+    <section>
+      <Content />
+    </section>
+  </article>
+</BlogLayout>

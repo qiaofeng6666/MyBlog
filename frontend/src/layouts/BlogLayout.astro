@@ -1,0 +1,21 @@
+---
+// frontend/src/layouts/BlogLayout.astro
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>{title}</title>
+  </head>
+  <body style="font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 1rem;">
+    <nav style="margin-bottom: 1rem;">
+      <a href="/">首页</a>
+    </nav>
+    <slot />
+  </body>
+</html>
