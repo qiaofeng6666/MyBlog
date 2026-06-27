@@ -87,5 +87,11 @@ npm run deploy
 ```
 
 ## 📄 许可证
+本项目采用 MIT 许可证 - 查看 LICENSE 文件了解详情
 
-MIT License
+🙏 致谢
+Astro - 优秀的前端框架
+
+Cloudflare - 强大的边缘计算平台
+
+GitHub - 可靠的代码托管服务
