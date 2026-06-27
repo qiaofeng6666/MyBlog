@@ -1,21 +1,49 @@
+// backend/src/index.ts
+
 import { Hono } from "hono";
 
-const app = new Hono();
+type Env = {
+  GITHUB_TOKEN: string;
+  GITHUB_REPO: string;
+};
 
-// 测试路由：访问 / 看看服务有没有通
+const app = new Hono<{
+  Bindings: Env;
+}>();
+
+// 定义我们“期望 GitHub 返回的结构”
+type GitHubFileResponse = {
+  content?: {
+    html_url?: string;
+    name?: string;
+    path?: string;
+    sha?: string;
+    size?: number;
+  };
+  message?: string;
+};
+
+// 一个简单的类型守卫，只检查我们关心的字段是否存在
+function isGitHubFileResponse(data: unknown): data is GitHubFileResponse {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "content" in data &&
+    typeof (data as any).content === "object" &&
+    "html_url" in (data as any).content
+  );
+}
+
 app.get("/", (c) => c.text("后端服务正在运行！"));
 
-// 发布文章的 API
 app.post("/publish", async (c) => {
-  // 从环境变量拿 Token 和仓库名
-  const token = c.env.GITHUB_TOKEN; 
+  const token = c.env.GITHUB_TOKEN;
   const repo = c.env.GITHUB_REPO;
 
   if (!token) {
     return c.json({ error: "未配置 GITHUB_TOKEN" }, 500);
   }
 
-  // 1. 获取前端发来的数据
   const body = await c.req.json();
   const { title, content } = body;
 
@@ -23,22 +51,19 @@ app.post("/publish", async (c) => {
     return c.json({ error: "标题和内容不能为空" }, 400);
   }
 
-  // 2. 准备 GitHub API 需要的数据
-  const slug = title.toLowerCase().replace(/\s+/g, '-'); // 简单的生成文件名逻辑
-  const path = `frontend/src/content/blog/${slug}.md`; // 注意路径，要更新前端的 content 目录
-  
-  // 把内容转成 Base64 (GitHub API 要求)
+  const slug = title.toLowerCase().replace(/\s+/g, '-');
+  const path = `frontend/src/content/blog/${slug}.md`;
+
   const base64Content = btoa(unescape(encodeURIComponent(content)));
 
   try {
-    // 3. 调用 GitHub API 提交文件
     const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
       method: "PUT",
       headers: {
         Authorization: `token ${token}`,
         Accept: "application/vnd.github.v3+json",
         "Content-Type": "application/json",
-        "User-Agent": "MyBlog-Worker" // GitHub API 强制要求 User-Agent
+        "User-Agent": "MyBlog-Worker"
       },
       body: JSON.stringify({
         message: `docs: 发布新文章《${title}》`,
@@ -46,14 +71,29 @@ app.post("/publish", async (c) => {
       }),
     });
 
-    const result = await response.json();
+    // 这里先拿到 unknown
+    const result: unknown = await response.json();
 
     if (!response.ok) {
-      // 如果 GitHub 报错，把错误信息返回出来
-      return c.json({ error: "GitHub API 错误", details: result }, 500);
+      // 出错时，我们假设 GitHub 返回的结构是 { message?: string; ... }
+      // 这里简单断言成 GitHubFileResponse 就够了，因为我们要的是 details
+      return c.json(
+        { error: "GitHub API 错误", details: result as GitHubFileResponse },
+        500
+      );
     }
 
-    return c.json({ success: true, message: "文章发布成功！", url: result.content.html_url });
+    // 正常时，用类型守卫检查结构
+    if (!isGitHubFileResponse(result)) {
+      return c.json({ error: "GitHub 返回数据格式不正确" }, 500);
+    }
+
+    // 现在 result 是 GitHubFileResponse，有类型提示
+    return c.json({
+      success: true,
+      message: "文章发布成功！",
+      url: result.content?.html_url,
+    });
 
   } catch (err) {
     return c.json({ error: "服务器内部错误" }, 500);
