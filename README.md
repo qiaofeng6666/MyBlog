@@ -1,3 +1,4 @@
+```
 MyBlog/
 ├── index.html                    # 首页（自动读取 JSON 渲染文章列表）
 ├── articles.json                 # 文章数据清单（手动维护）
@@ -10,3 +11,4 @@ MyBlog/
 │   ├── images/                   # 文章配图
 │   └── fonts/                    # 自定义字体
 └── README.md                     # 项目说明（GitHub 展示用）
+```
