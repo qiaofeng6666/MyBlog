@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hello World，我的第一篇博客</title>
+    <link rel="stylesheet" href="../style.css" />  <!-- 复用首页样式 -->
+    <style>
+        /* 文章页专用样式：让内容区更宽，适合阅读 */
+        .post-content {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+        .post-content h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .post-content img {
+            max-width: 100%;
+            border-radius: 12px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: #0066cc;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="post-content">
+        <h2>Hello World，我的第一篇博客</h2>
+        <div class="meta">
+            <span class="author">✍️ 你的名字</span>
+            <span class="date">📅 2026-07-20</span>
+        </div>
+        <div class="tags">
+            <span class="tag">#生活</span>
+            <span class="tag">#随想</span>
+        </div>
+        <hr />
+        <!-- 正文内容从这里开始 -->
+        <p>终于，我拥有了属于自己的博客网站。</p>
+        <p>虽然过程简单，但迈出第一步总是值得记录的。</p>
+        <!-- 更多内容... -->
+        <a href="../index.html" class="back-link">← 返回首页</a>
+    </div>
+</body>
+</html>

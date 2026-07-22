@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MyBlog · 记录思考，分享生活</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- 引入 Font Awesome 图标库（免费） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+    <!-- ========== 顶部导航 ========== -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <i class="fas fa-feather-alt"></i> MyBlog
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="active"><i class="fas fa-home"></i> 首页</a>
+                <a href="#"><i class="fas fa-tags"></i> 标签</a>
+                <a href="#"><i class="fas fa-info-circle"></i> 关于</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ========== 英雄区（Hero） ========== -->
+    <header class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-pen-fancy"></i> 已有 <span id="post-count">0</span> 篇文章
+            </div>
+            <h1>记录思考，分享生活</h1>
+            <p>用文字定格每一个值得被记住的瞬间</p>
+        </div>
+        <div class="hero-decoration">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+            <div class="floating-shape shape-3"></div>
+        </div>
+    </header>
+
+    <!-- ========== 文章列表 ========== -->
+    <section class="articles-section" id="articles">
+        <div class="section-header">
+            <div class="section-title">
+                <h2><i class="fas fa-book-open"></i> 全部文章</h2>
+                <span class="section-subtitle">按时间倒序排列</span>
+            </div>
+            <div class="section-controls">
+                <button class="view-btn active" id="grid-view" title="卡片视图">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button class="view-btn" id="list-view" title="列表视图">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 文章列表容器（JS 动态渲染） -->
+        <div id="article-list" class="article-grid"></div>
+
+        <!-- 加载状态 -->
+        <div id="loading-state" class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i> 正在加载文章...
+        </div>
+
+        <!-- 空状态（没有文章时显示） -->
+        <div id="empty-state" class="empty-state" style="display:none;">
+            <i class="fas fa-inbox"></i>
+            <h3>还没有文章</h3>
+            <p>快去写下你的第一篇博客吧！</p>
+        </div>
+    </section>
+
+    <!-- ========== 页脚 ========== -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-info">
+                <div class="footer-logo">
+                    <i class="fas fa-feather-alt"></i> MyBlog
+                </div>
+                <p>用文字连接世界，用思考点亮生活</p>
+            </div>
+            <div class="footer-links">
+                <a href="#"><i class="fab fa-github"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fas fa-envelope"></i></a>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2026 MyBlog · 基于纯静态 HTML 构建</span>
+                <span>Powered by Cloudflare Pages</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ========================================
+        // 1. 加载文章数据并渲染
+        // ========================================
+        fetch('articles.json')
+            .then(response => {
+                if (!response.ok) throw new Error('网络请求失败');
+                return response.json();
+            })
+            .then(articles => {
+                // 隐藏加载状态
+                document.getElementById('loading-state').style.display = 'none';
+
+                if (!articles || articles.length === 0) {
+                    document.getElementById('empty-state').style.display = 'block';
+                    return;
+                }
+
+                // 更新文章数量徽标
+                document.getElementById('post-count').textContent = articles.length;
+
+                // 按日期从新到旧排序
+                const sorted = [...articles].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                const container = document.getElementById('article-list');
+                let html = '';
+
+                sorted.forEach((article, index) => {
+                    // 标签 HTML
+                    const tagsHtml = article.tags.map(tag =>
+                        `<span class="tag">#${tag}</span>`
+                    ).join('');
+
+                    // 延迟动画：每个卡片依次出现
+                    const delay = index * 60;
+
+                    html += `
+                        <article class="post-card" style="animation-delay: ${delay}ms;">
+                            <div class="post-card-inner">
+                                <div class="post-meta-top">
+                                    <span class="post-date">
+                                        <i class="far fa-calendar-alt"></i> ${article.date}
+                                    </span>
+                                    <span class="post-author">
+                                        <i class="far fa-user"></i> ${article.author}
+                                    </span>
+                                </div>
+                                <h3 class="post-title">
+                                    <a href="articles/${article.filename}">${article.title}</a>
+                                </h3>
+                                <p class="post-excerpt">${article.summary || '暂无摘要'}</p>
+                                <div class="post-footer">
+                                    <div class="post-tags">${tagsHtml}</div>
+                                    <a href="articles/${article.filename}" class="read-more">
+                                        阅读全文 <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
+                    `;
+                });
+
+                container.innerHTML = html;
+
+                // 如果只有一篇文章，用卡片模式展示
+                if (sorted.length === 1) {
+                    container.classList.add('single-article');
+                } else {
+                    container.classList.remove('single-article');
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('article-list').innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>加载失败</h3>
+                        <p>${error.message || '请检查网络连接后刷新重试'}</p>
+                        <button onclick="location.reload()" class="btn-primary">
+                            <i class="fas fa-redo"></i> 重新加载
+                        </button>
+                    </div>
+                `;
+                console.error('加载文章失败:', error);
+            });
+
+        // ========================================
+        // 2. 视图切换（卡片 / 列表）
+        // ========================================
+        const gridBtn = document.getElementById('grid-view');
+        const listBtn = document.getElementById('list-view');
+        const articleList = document.getElementById('article-list');
+
+        gridBtn.addEventListener('click', function() {
+            this.classList.add('active');
+            listBtn.classList.remove('active');
+            articleList.classList.remove('list-view');
+            articleList.classList.add('article-grid');
+        });
+
+        listBtn.addEventListener('click', function() {
+            this.classList.add('active');
+            gridBtn.classList.remove('active');
+            articleList.classList.remove('article-grid');
+            articleList.classList.add('list-view');
+        });
+
+        // ========================================
+        // 3. 平滑滚动（点击 Hero 按钮时平滑滚动到文章区）
+        // ========================================
+        document.querySelector('.hero-actions .btn-primary')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelector('#articles').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        });
+    </script>
+</body>
+</html>
