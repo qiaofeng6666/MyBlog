@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <title>查理·芒格 · 清醒思考的艺术</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #faf8f6;
+      color: #1f2a3a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.8;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* 阅读进度条 */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background: #b9a28c;
+      width: 0%;
+      z-index: 1000;
+      transition: width 0.08s ease;
+      border-radius: 0 2px 2px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    /* 主卡片 – 沉浸式容器 */
+    .article-card {
+      max-width: 780px;
+      width: 100%;
+      background: #ffffff;
+      padding: 3rem 3.5rem;
+      border-radius: 28px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+      animation: fadeUp 0.7s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+      opacity: 0;
+      transform: translateY(18px);
+      transition: box-shadow 0.2s;
+      margin: 1rem 0 3rem 0;
+    }
+
+    @keyframes fadeUp {
+      0% { opacity: 0; transform: translateY(18px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 文章语义容器 */
+    article {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    /* 标题 */
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      text-align: center;
+      margin: 0.2rem 0 0.4rem 0;
+      color: #1a2634;
+    }
+
+    /* 元数据 */
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      color: #6b7a8a;
+      margin-bottom: 1.8rem;
+      border-bottom: 1px solid #eae6e0;
+      padding-bottom: 1.5rem;
+    }
+
+    .meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .meta .divider {
+      color: #cdc6bc;
+      font-weight: 300;
+    }
+
+    /* 正文排版 */
+    p {
+      font-size: 1.1rem;
+      margin: 0.6rem 0;
+      color: #1f2a3a;
+      transition: background 0.15s, box-shadow 0.15s;
+      padding: 0.2rem 0.4rem;
+      border-radius: 6px;
+    }
+
+    p:hover {
+      background: #f6f3ef;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    /* 引用块 */
+    blockquote {
+      margin: 1.4rem 0;
+      padding: 0.8rem 1.8rem 0.8rem 1.8rem;
+      background: #f6f3ef;
+      border-left: 6px solid #b9a28c;
+      border-radius: 0 12px 12px 0;
+      font-style: italic;
+      color: #3d4a5a;
+      font-size: 1.05rem;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+    }
+
+    blockquote:hover {
+      background: #f0ebe4;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    blockquote p {
+      margin: 0.2rem 0;
+      font-size: 1.05rem;
+    }
+
+    /* 子标题（板块） */
+    h2 {
+      font-size: 1.7rem;
+      font-weight: 650;
+      margin: 1.8rem 0 0.6rem 0;
+      color: #1f2a3a;
+      letter-spacing: -0.01em;
+      border-bottom: 2px solid #eae6e0;
+      padding-bottom: 0.3rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 1.4rem 0 0.2rem 0;
+      color: #2a3a4a;
+    }
+
+    /* 列表（用于清单） */
+    ul, ol {
+      padding-left: 1.6rem;
+      margin: 0.6rem 0 0.8rem 0;
+    }
+
+    li {
+      margin: 0.4rem 0;
+      font-size: 1.05rem;
+    }
+
+    /* 强调 */
+    strong {
+      font-weight: 600;
+      color: #1a2634;
+    }
+
+    /* 返回顶部按钮 */
+    #back-to-top {
+      position: fixed;
+      bottom: 2.2rem;
+      right: 2.2rem;
+      background: #d6cdc2;
+      border: none;
+      color: #1f2a3a;
+      width: 44px;
+      height: 44px;
+      border-radius: 40px;
+      font-size: 1.3rem;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      background: rgba(215, 205, 195, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      opacity: 0.7;
+    }
+
+    #back-to-top:hover {
+      background: #c7b9ab;
+      transform: scale(1.06);
+      opacity: 1;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    /* 响应式 */
+    @media (max-width: 700px) {
+      body { padding: 0.8rem; }
+      .article-card { padding: 1.8rem 1.5rem; border-radius: 20px; }
+      h1 { font-size: 2.0rem; }
+      .meta { font-size: 0.8rem; gap: 0.3rem 0.8rem; }
+      p { font-size: 1.0rem; }
+      blockquote { padding: 0.6rem 1.2rem; font-size: 0.95rem; }
+      #back-to-top { bottom: 1.2rem; right: 1.2rem; width: 40px; height: 40px; }
+    }
+
+    @media (max-width: 460px) {
+      .article-card { padding: 1.2rem 1rem; }
+      h1 { font-size: 1.7rem; }
+      h2 { font-size: 1.4rem; }
+      .meta { flex-direction: row; flex-wrap: wrap; }
+    }
+
+    /* 一些微调 */
+    .small-note {
+      font-size: 0.95rem;
+      color: #5f6e7e;
+      margin-top: 0.2rem;
+    }
+
+    hr {
+      border: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #ddd6ce, transparent);
+      margin: 1.8rem 0 1.2rem 0;
+    }
+
+    /* 段落悬停微交互 */
+    .article-card p, .article-card li, .article-card h3 {
+      transition: all 0.1s ease;
+    }
+    .article-card p:hover, .article-card li:hover {
+      background: #f6f3ef;
+      border-radius: 6px;
+      padding-left: 0.6rem;
+      padding-right: 0.4rem;
+    }
+
+    /* 特殊：引用块内段落不额外高亮 */
+    blockquote p:hover {
+      background: transparent;
+      box-shadow: none;
+      padding: 0.2rem 0.4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 进度条 -->
+  <div id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+  <!-- 主卡片 -->
+  <div class="article-card">
+    <article>
+      <h1>查理·芒格 · 清醒思考的艺术</h1>
+
+      <!-- 元数据 -->
+      <div class="meta">
+        <span>📝 查理·芒格  &amp; 读者</span>
+        <span class="divider">·</span>
+        <span>📅 2026年7月23日</span>
+        <span class="divider">·</span>
+        <span>⏳ 阅读约 5 分钟</span>
+      </div>
+
+      <!-- 板块一 -->
+      <h2>板块一：查理·芒格是谁？他有什么不一样？</h2>
+      <p><strong>他是谁（3句话）：</strong>他是巴菲特的老搭档，俩人一起把伯克希尔公司从一家快倒闭的纺织厂做成了投资帝国。他风格是“专挑错”，像个拿着手术刀的挑剔老头，不找哪个公司好，专挑哪个公司有毛病。他一生挺坎坷，经历过丧子、眼睛失明等磨难，但硬是靠头脑和心性翻了过来。</p>
+      <p><strong>他和巴菲特的关系：</strong>就是“一静一动”的黄金搭档。巴菲特像武林盟主，亲和幽默，负责抛头露面；芒格像背后的“坏警察”，毒舌、犀利，负责说“不，这主意太蠢了”。巴菲特说，芒格让他从“学猩猩投资”变成了“真正理性的人”。</p>
+      <p><strong>他为什么强调“理性”：</strong>他说的“理性”不是冷血，而是“坚决不被自己的情绪和愚蠢牵着鼻子走”。</p>
+      <blockquote>
+        <p>举例：你正饿得要命，路过面包店闻到香味，冲动想买五个甜甜圈。理性就是停下来想：我其实吃两个就腻了，买五个只会让我吃完难受且后悔。理性就是在冲动那一刻，脑子里有个小人喊“等等，你确定？”</p>
+      </blockquote>
+
+      <!-- 板块二 -->
+      <h2>板块二：他是怎么思考问题的（核心思维）</h2>
+      <p><strong>什么叫“反过来想”：</strong>不是想“怎么成功”，而是想“怎么才会搞砸”，然后避开所有搞砸的路。</p>
+      <blockquote>
+        <p>举例（存不下钱）：想“怎么才能存下钱”很难。反过来想：怎么才能保证存不下钱？答案是：每天一杯三十块的奶茶、看到网购满减就凑单、工资一到账就乱花。好，那反过来——我不做这些事，自然就能存下钱了。</p>
+      </blockquote>
+      <p><strong>什么叫“多元思维模型”：</strong>你的大脑不能只有一把锤子，看什么都像钉子。你得有一个工具箱，里面有扳手、螺丝刀、尺子。遇到问题，换不同的工具去拆解。</p>
+      <p><strong>普通人最值得学的6个学科思维（每句大白话）：</strong></p>
+      <ul>
+        <li><strong>数学（复利和概率）：</strong>世界是讲几率的，别赌小概率事件，长期看，稳稳的小增长比暴富猛得多。</li>
+        <li><strong>物理学（临界点和均衡）：</strong>东西积累到一定程度会突然质变（比如水烧到100度才开），做事得有耐心等到那个点。</li>
+        <li><strong>生物学（进化和竞争）：</strong>没有一招鲜，环境变了你还不变，就会被淘汰（比如诺基亚）。</li>
+        <li><strong>心理学（认知偏差）：</strong>人天生是不讲逻辑的动物，别以为自己想的就是对的。</li>
+        <li><strong>经济学（机会成本）：</strong>你选了A，就意味着放弃了B、C、D能带来的好处，这个“放弃的好处”才是你真正的代价。</li>
+        <li><strong>历史学（周期性）：</strong>太阳底下没有新鲜事，以前发生过的荒唐事，现在换张皮还会重演。</li>
+      </ul>
+      <p><strong>什么叫“能力圈”：</strong>就是明确知道“我不知道什么”。</p>
+      <blockquote>
+        <p>比喻：你做饭好吃，那是你能力圈；但你家电路坏了，你就别逞能去修，那是圈外。<br>
+        怎么判断：一件事你比身边大多数人都懂，出了问题你知道怎么补救——这算圈内。圈外的活找上门怎么办？直接说“我不懂，但我可以帮你找懂的人”。承认无知，比硬撑交学费便宜得多。</p>
+      </blockquote>
+      <p><strong>什么叫“检查清单”：</strong>把重要步骤写下来，每一步都打钩，防止脑子一热忘掉关键事。</p>
+      <p><strong>日常决策检查清单模板（买东西/做决定前）：</strong></p>
+      <ul>
+        <li>我买这个东西，是真的需要，还是因为打折/别人有？</li>
+        <li>买了之后，我的生活是变好一点，还是反而多一堆麻烦（保养、存放）？</li>
+        <li>如果现在立刻把它换成等额现金，我是要现金还是要这东西？</li>
+        <li>最坏的结果我扛得住吗？</li>
+      </ul>
+
+      <!-- 板块三 -->
+      <h2>板块三：他怎么看待赚钱和投资（翻译成做人道理）</h2>
+      <p><strong>什么叫“护城河”：</strong>就是你跟别人竞争时，别人很难抄走你的那个优势。</p>
+      <blockquote>
+        <p>举例（开奶茶店）：你口味好，别人也能模仿，这不算。真正的护城河是：你开在唯一的地铁口（位置垄断）、你品牌让人愿意多付5块钱（品牌溢价）、你的成本比对手低两成（规模优势）。做人同理：你的护城河是“别人很难替代你的独特能力”，比如全村就你会修某种古董钟表。</p>
+      </blockquote>
+      <p><strong>“便宜价买烂公司” vs “合理价买好公司”：</strong></p>
+      <blockquote>
+        <p>举例：买一辆二手破车（烂公司），只花5千块，但每个月修车花2千，最后烦死。买一辆可靠的新车（好公司），花15万，但五年不出大毛病。宁可花高价买个省心，也别贪便宜买个大麻烦。做人做事，找伴侣、找工作同理。</p>
+      </blockquote>
+      <p><strong>什么叫“复利”：</strong>就是“利滚利”，你赚到的利息，下一年也帮你赚利息。</p>
+      <blockquote>
+        <p>举例（减肥）：每天少吃一口（约50大卡），一年少摄入18250大卡，约等于2.5斤脂肪。听起来不起眼，但连续十年就是25斤。大多数人等不到十年，因为第二周上秤没变化就放弃了。复利的秘密是：时间足够长，效果才吓人。</p>
+      </blockquote>
+      <p><strong>“少下注、下重注”：</strong>他意思不是让你赌，而是精力要集中，别撒胡椒面。</p>
+      <blockquote>
+        <p>举例：你下班后想学点东西，又学英语、又学编程、又学写作，最后全是半吊子。不如选一个你最可能做成的事，把80%的业余时间砸进去，直到成专家。钱少更要集中火力，别四处追风口。</p>
+      </blockquote>
+      <p><strong>他为什么强调“等待”：</strong>钓鱼时，你不停换位置、提竿看钩，永远钓不到鱼。“什么都不做”比“瞎折腾”更赚钱，因为瞎折腾全是摩擦成本（手续费、时间、后悔）。生活中很多麻烦，都是因为“受不了无聊，非要干点什么”搞出来的。</p>
+
+      <!-- 板块四 -->
+      <h2>板块四：他怎么看待人性弱点（人类误判心理学）</h2>
+      <p><strong>最要命的5个心理倾向：</strong></p>
+      <ul>
+        <li><strong>奖励和惩罚超级反应：</strong>有提成我就卖力推销，哪怕产品一般——这叫“谁给好处我听谁的”。警惕自己会不会因为一点短期奖励，做了长期亏本的事。</li>
+        <li><strong>社会认同：</strong>看到网红店排队，你也想排——潜意识觉得“那么多人选，肯定没错”。但骗局和泡沫，都是靠人多撑起来的。</li>
+        <li><strong>避免不一致：</strong>买了个烂股票/烂东西，心里别扭，但为了证明“我没傻”，打死不肯卖/不肯退，结果亏更多。面子比钱包重要，是人性大坑。</li>
+        <li><strong>嫉妒：</strong>同学聚会，听说谁发了财，心里一紧。这是最没用的情绪——它不会让你变好，只会让你难受。</li>
+        <li><strong>过度乐观：</strong>觉得自己开车技术比平均水平高、觉得自己肯定不会得病。“我例外” 是大脑最危险的幻觉。</li>
+      </ul>
+      <p><strong>什么叫“铁锤人综合征”：</strong>手里只有一把锤子，看啥都想砸两下。</p>
+      <blockquote>
+        <p>举例：你电脑卡了，你只会重启（你的唯一工具），其实可能是内存满了、有病毒、或风扇坏了。装修时，工头只会“多打胶、多钉钉子”来解决所有问题，不管该不该。思维单一的人，看所有问题都像自己会解决的那种问题，非常危险。</p>
+      </blockquote>
+      <p><strong>最简单的“我在犯傻”信号：</strong>当你心里出现“这次不一样”或“我特殊”这几个字的时候。比如：“这次投资不一样，肯定能赚”“这点酒我喝了不会误事”“我熬夜一次没事”。一冒出这念头，立即刹车，想三遍再做决定。</p>
+
+      <!-- 板块五 -->
+      <h2>板块五：他怎么看待生活和幸福（人生哲学）</h2>
+      <p><strong>“降低预期”不等于“不上进”：</strong></p>
+      <blockquote>
+        <p>解释：降低的是“对结果的执念”，而不是“对行动的努力”。你努力复习，但预期是“考不过也没关系，我尽力了”，这叫降低预期。不上进是根本不复习。幸福的公式：实际结果 / 预期。预期越大，幸福越少。</p>
+      </blockquote>
+      <p><strong>“嫉妒是最蠢的罪”：</strong></p>
+      <blockquote>
+        <p>举例（同学聚会）：别人升职加薪，你嫉妒得吃不下饭。但嫉妒能让你加薪吗？不能。它唯一的作用是让你把精力耗在别人身上，而不是自己身上。芒格说，嫉妒是唯一一种你永远得不到任何好处的罪行。</p>
+      </blockquote>
+      <p><strong>“延迟满足”怎么区分真还是被忽悠：</strong></p>
+      <ul>
+        <li><strong>“真延迟”：</strong>今天加班学一门硬技能（痛苦），半年后用这门技能跳槽涨薪（好处归你）——这叫自己给自己画饼。</li>
+        <li><strong>“被忽悠”：</strong>老板让你加班画饼，说“公司上市了你就是元老”（好处不确定，饼是别人画的）——这叫给别人当燃料。</li>
+      </ul>
+      <p>区分标准：延迟之后，好处是直接长在我身上（能力、健康、资产），还是长在别人身上（老板的业绩、别人的KPI）？</p>
+      <p><strong>运气和努力的关系（打麻将）：</strong>你努力记牌、算概率、不点炮，这叫把“不输”的基础打好。但能不能胡一把大牌，确实看运气。努力是为了“不把好牌打烂”，运气来了你能接住。 没运气时，努力让你少输。</p>
+      <p><strong>“配得上”是什么意思：</strong></p>
+      <blockquote>
+        <p>举例（找工作）：你想去一家好公司，不是靠死皮赖脸求，而是把你的技能、作品、人品练到“他们不要你是他们损失”的程度。想得到什么，先让自己配得上它。找对象也一样，你想找优秀的人，先让自己也优秀。</p>
+      </blockquote>
+
+      <!-- 板块六 -->
+      <h2>板块六：他怎么识别忽悠和废话（防坑指南）</h2>
+      <p><strong>对比：解释“公司为什么亏损”</strong></p>
+      <blockquote>
+        <p><strong>忽悠式黑话：</strong>“由于宏观环境的不确定性加剧，叠加行业周期性下行，公司在战略转型期的阶段性阵痛中，进行了前瞻性的资产减值准备，导致当期账面利润承压。”</p>
+        <p><strong>查理式大白话：</strong>“我们去年干砸了，东西卖不出去，之前买贵了的机器现在不值钱了，所以亏了。”</p>
+      </blockquote>
+      <p><strong>1秒识别糊弄的办法：</strong>听对方说话时，在脑子里问：“他这句话，换成我上小学的侄子能听懂吗？” 如果他不能，那对方要么自己没想明白，要么就是在故意装高深糊弄你。真正懂的人，能用最朴素的话把复杂事讲清楚。</p>
+      <p><strong>“知道我会死在哪，就永远不去”怎么防坑：</strong></p>
+      <ul>
+        <li>举例（借钱给人）：你知道“借钱给不靠谱的朋友”大概率会失去钱又失去朋友，那就一开始就不借，找个理由婉拒，别纠结。</li>
+        <li>举例（冲动消费）：你知道“深夜逛购物软件”容易买一堆没用的，那就晚上十点后不打开购物App。</li>
+      </ul>
+
+      <!-- 板块七 -->
+      <h2>板块七：全书最精华的10句话</h2>
+      <blockquote>
+        <p>“反过来想，总是反过来想。” —— 大白话：想赢先想怎么输，避开输的路，赢自然来。场景：你想跟同事搞好关系，先别想“怎么讨好”，想“怎么才会得罪人”——不背后说坏话、不抢功，避开这些就够了。</p>
+      </blockquote>
+      <blockquote>
+        <p>“在手里拿着锤子的人眼里，全世界都是钉子。” —— 大白话：别只用一个老办法处理所有新问题。场景：跟孩子沟通，你不能只会吼（锤子），有时候得讲理、有时候得哄、有时候得冷处理。</p>
+      </blockquote>
+      <blockquote>
+        <p>“如果我知道我会死在哪里，我就永远不会去那个地方。” —— 大白话：提前躲开必死之坑，别考验自己。场景：明知道自己一刷短视频就停不下来，那就别在睡前打开。</p>
+      </blockquote>
+      <blockquote>
+        <p>“我们的成功不是因为我们善于解决问题，而是因为我们善于远离问题。” —— 大白话：避开大麻烦，比解决大麻烦厉害得多。场景：选伴侣时，找个情绪稳定的，比找个天天吵架再学“沟通技巧”去解决，高明多了。</p>
+      </blockquote>
+      <blockquote>
+        <p>“价格是你付出的，价值是你得到的。” —— 大白话：别只看东西贵不贵，看它值不值。场景：买一双五百元穿五年的鞋，比买五双一百元穿半年的鞋更划算。</p>
+      </blockquote>
+      <blockquote>
+        <p>“你必须知道重要学科的重要理论，并经常使用它们——要全部用上，而不是只用几种。” —— 大白话：工具箱里的家伙什儿越多，解决问题越不费劲。场景：规划家庭旅行，光看地图（地理）不够，还得算预算（数学）、考虑老人体力（生理）、协商目的地（心理学）。</p>
+      </blockquote>
+      <blockquote>
+        <p>“我们寻找的是定错价格的赌注。” —— 大白话：好机会是你比市场更懂一个东西的真正价值。场景：大家都说“写作不赚钱”时，你发现会写作的人做自媒体、做课程很吃香，那这就是你的机会。</p>
+      </blockquote>
+      <blockquote>
+        <p>“耐心是最值得拥有的品质。” —— 大白话：好东西需要时间发酵，你急也没用。场景：刚学吉他三天就想上台表演，不现实。耐心练三个月，自然能弹几首曲子。</p>
+      </blockquote>
+      <blockquote>
+        <p>“嫉妒是唯一一种你永远无法从中获得任何好处的罪行。” —— 大白话：嫉妒纯粹是折磨自己，没一丁点用。场景：看到朋友圈晒旅游，心里酸——立马打住，关掉手机，去看自己的书。</p>
+      </blockquote>
+      <blockquote>
+        <p>“要得到你想要的某样东西，最可靠的办法是让你自己配得上它。” —— 大白话：别去求，去修炼。场景：想升职，不是去跟老板说“给我机会”，而是把现在的工作做得超出预期，让老板觉得“不给机会是公司的损失”。</p>
+      </blockquote>
+
+      <h2>全书总结</h2>
+      <p>用一句最通俗的话概括整本书：别犯傻，比聪明重要得多；把最简单的道理老老实实做到，比学一堆花架子管用得多。</p>
+      <p>这本书从头到尾就在教你一件事：怎么避开脑子里的坑。芒格不教你怎么发财，他教你怎么不破产；不教你怎么幸福，他教你怎么不痛苦。因为在他看来，躲开了所有的大坑，剩下的路自然就是向上走的。所有复杂模型、投资理念，归根结底就是“理性”俩字——而理性，就是能随时跳出来看自己一眼，问一句“我现在是不是在犯傻”。</p>
+      <p><strong>如果只记住三件事：</strong>第一，反过来想，多想想“怎么搞砸”而不是“怎么成功”。第二，别只会用一把锤子，遇到事换几个角度想。第三，认清自己的能力边界，圈外的活坚决不碰，圈内的活往死里练。</p>
+
+      <h3>明天就能用的3件事</h3>
+      <ul>
+        <li><strong>第1件：</strong>明天你遇到第一个“想买但不太必要的东西”时，先在手机备忘录里写下“我需要它，还是我被它/别人说服了？”，写下答案再付款。</li>
+        <li><strong>第2件：</strong>明天跟人聊天或开会时，听到有人讲了一大段“高大上”的词，你试着用一句大白话翻译给旁边的人听。如果翻不出来，说明那人在说废话，别当真。</li>
+        <li><strong>第3件：</strong>明天晚上睡前，想一件今天“差点冲动做”的事（比如差点发火、差点乱买、差点接话），然后反过来想：如果我不做那件事，结果是不是更好？ 把这当成一个小游戏，玩一周，你会发现脑子清爽很多。</li>
+      </ul>
+      <p style="margin-top: 1.8rem; font-size: 1rem; color: #4d5e6e;">好了，就这些。这老爷子的话，多琢磨，慢慢用，脑子确实会好使一点。祝顺利。</p>
+    </article>
+  </div>
+
+  <!-- 返回顶部按钮 -->
+  <button id="back-to-top" aria-label="返回顶部">↑</button>
+
+  <script>
+    (function() {
+      // 进度条
+      const progressBar = document.getElementById('progress-bar');
+      const updateProgress = () => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        progressBar.style.width = Math.min(progress, 100) + '%';
+        progressBar.setAttribute('aria-valuenow', Math.round(progress));
+      };
+
+      window.addEventListener('scroll', updateProgress);
+      window.addEventListener('resize', updateProgress);
+      updateProgress();
+
+      // 返回顶部 – 平滑滚动
+      const backBtn = document.getElementById('back-to-top');
+      backBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      // 小优化：按钮渐显（滚动超过一屏显示更明显）
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > window.innerHeight * 0.6) {
+          backBtn.style.opacity = '0.9';
+        } else {
+          backBtn.style.opacity = '0.5';
+        }
+      });
+      // 初始状态
+      backBtn.style.opacity = '0.4';
+    })();
+  </script>
+
+</body>
+</html>
