@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>沉浸阅读 · 社会心理学笔记</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f8f6f2;  /* 柔和米白 */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e1e1e;
+      line-height: 1.8;
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* 阅读进度条 ———— 纤细优雅 */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: #e8e4dc;
+      z-index: 1000;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .progress-bar .fill {
+      height: 100%;
+      width: 0%;
+      background: #2c3e50;
+      transition: width 0.08s linear;
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* 主卡片 ———— 沉浸式容器 */
+    .reader-card {
+      max-width: 780px;
+      width: 100%;
+      background: #ffffff;
+      padding: 3rem 3.5rem;
+      border-radius: 28px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04), 0 4px 10px rgba(0, 0, 0, 0.02);
+      margin: 2rem auto 4rem;
+      animation: fadeSlideUp 0.9s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    @keyframes fadeSlideUp {
+      0% { opacity: 0; transform: translateY(24px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 文章标题 */
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-align: center;
+      margin: 0 0 0.2rem 0;
+      color: #1e1e1e;
+      line-height: 1.2;
+    }
+
+    /* 元数据区块 */
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+      color: #6b6b6b;
+      margin: 0.5rem 0 2.2rem 0;
+      letter-spacing: 0.01em;
+      border-bottom: 1px solid #f0ede7;
+      padding-bottom: 1.2rem;
+    }
+    .meta span {
+      display: inline-flex;
+      align-items: center;
+    }
+    .meta .dot {
+      color: #c0bbb2;
+      font-weight: 300;
+      margin: 0 0.2rem;
+    }
+
+    /* 正文排版 */
+    article {
+      font-size: 1.08rem;
+      color: #212121;
+    }
+
+    article p {
+      margin: 1.4rem 0;
+      word-break: break-word;
+    }
+
+    /* 板块标题 (h2) */
+    article h2 {
+      font-size: 1.7rem;
+      font-weight: 600;
+      margin: 2.4rem 0 0.8rem 0;
+      letter-spacing: -0.01em;
+      color: #1a1a1a;
+      border-left: 4px solid #d0cac0;
+      padding-left: 0.9rem;
+    }
+
+    /* 小标题 (h3) 更轻 */
+    article h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 1.8rem 0 0.4rem 0;
+      color: #2a2a2a;
+    }
+
+    /* 引用块 ———— 左侧竖条 + 淡色斜体 */
+    article blockquote {
+      margin: 2rem 0;
+      padding: 0.6rem 1.8rem 0.6rem 2rem;
+      background: #f5f3ef;
+      border-left: 5px solid #c7c0b4;
+      font-style: italic;
+      color: #3d3d3d;
+      border-radius: 0 8px 8px 0;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.01);
+    }
+    article blockquote p {
+      margin: 0.6rem 0;
+    }
+
+    /* 列表 */
+    article ul, article ol {
+      margin: 0.8rem 0 1.2rem 1.8rem;
+      padding-left: 0.4rem;
+    }
+    article li {
+      margin: 0.5rem 0;
+    }
+
+    /* 加粗 强调 */
+    article strong {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    /* 小字号辅助 */
+    .small-note {
+      font-size: 0.9rem;
+      color: #555;
+      background: #f3f1ec;
+      padding: 0.1rem 0.5rem;
+      border-radius: 12px;
+    }
+
+    /* 返回顶部按钮 */
+    .back-top {
+      position: fixed;
+      bottom: 2.2rem;
+      right: 2.2rem;
+      background: #ffffff;
+      border: 1px solid #d6d2ca;
+      color: #2c3e50;
+      padding: 0.7rem 1.2rem;
+      border-radius: 60px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(4px);
+      background: rgba(255, 255, 255, 0.85);
+      letter-spacing: 0.3px;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .back-top:hover {
+      background: #f0eee8;
+      border-color: #b0aaa0;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+      transform: translateY(-2px);
+    }
+    .back-top:active {
+      transform: scale(0.96);
+    }
+
+    /* 响应式 ———— 手机 / 平板 */
+    @media screen and (max-width: 640px) {
+      body {
+        padding: 1rem 0.8rem;
+      }
+      .reader-card {
+        padding: 1.8rem 1.4rem;
+        border-radius: 20px;
+        margin: 0.6rem 0 2.4rem 0;
+      }
+      h1 {
+        font-size: 2.0rem;
+      }
+      article {
+        font-size: 1.0rem;
+      }
+      .meta {
+        font-size: 0.8rem;
+        gap: 0.2rem 0.5rem;
+        margin-bottom: 1.6rem;
+      }
+      article h2 {
+        font-size: 1.4rem;
+        padding-left: 0.7rem;
+      }
+      article blockquote {
+        padding: 0.4rem 1rem 0.4rem 1.4rem;
+        margin: 1.2rem 0;
+      }
+      .back-top {
+        bottom: 1.2rem;
+        right: 1.2rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media screen and (min-width: 641px) and (max-width: 1024px) {
+      .reader-card {
+        padding: 2.4rem 2.5rem;
+      }
+    }
+
+    /* 额外精致细节 */
+    hr {
+      border: none;
+      border-top: 1px solid #e8e3db;
+      margin: 2.4rem 0 1.2rem 0;
+      opacity: 0.5;
+    }
+
+    /* 列表内强调 */
+    .highlight-box {
+      background: #f8f6f0;
+      padding: 1.2rem 1.8rem;
+      border-radius: 18px;
+      margin: 1.6rem 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- 进度条 -->
+  <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+    <div class="fill" id="readingProgressFill"></div>
+  </div>
+
+  <!-- 主阅读卡片 -->
+  <div class="reader-card">
+    <header>
+      <h1>社会心理学的「提线木偶」说明书</h1>
+      <div class="meta">
+        <span>📘 读书笔记</span>
+        <span class="dot">·</span>
+        <span>✍️ 作者 · 社会心理学研习社</span>
+        <span class="dot">·</span>
+        <span>📅 2026-07-23</span>
+        <span class="dot">·</span>
+        <span>⏱️ 8分钟阅读</span>
+      </div>
+    </header>
+
+    <article>
+      <!-- 核心引言 -->
+      <blockquote>
+        <p>“你以为你是个有主见的理性人？其实你大部分时间都是环境的‘提线木偶’，而且你还意识不到那根线。”</p>
+      </blockquote>
+
+      <h2>板块一：我们怎么看自己（自我认知）</h2>
+      <h3>1. 什么叫“自我概念”？</h3>
+      <p>就是你脑子里那个“我是谁”的答案。这玩意儿怎么来的？不是你自己憋在家里想出来的，主要是照镜子照出来的。这镜子就是“别人怎么对我”。<br><strong>例子：</strong>你小时候画画，爸妈夸你“真有天赋”，老师贴你墙上展览，你就慢慢把“画画好”写进自我概念里。反过来，如果你每次唱歌家人都皱眉，你就把“五音不全”写进去。你的自我概念，很大程度是你身边重要的人给你“反馈”出来的。</p>
+
+      <h3>2. 什么叫“自我服务偏差”？</h3>
+      <p>大白话就是：好事儿全归我，坏事儿全怪命。<br><strong>例子：</strong>工作项目成了，你会觉得“我能力太强了”；项目砸了，你会觉得“同事太猪了，时间太紧了，甲方太事儿了”。开车时，别人变道是“找死”，自己变道是“真有急事”。这不是你人品差，是人类大脑自带的“心理防弹衣”，为了护住那点可怜的自尊心。</p>
+
+      <h3>3. 什么叫“自我实现预言”？</h3>
+      <p>你想什么，你就往那个方向使劲，最后真就成了你想的那样。<br><strong>例子：</strong>你早上起床觉得“今天开会我肯定要出丑”，带着这个念头，你讲话声音发虚，不敢看人，逻辑混乱，最后真的讲砸了。你验证了自己的“预言”。反过来，你觉得自己“能搞定”，你肢体语言自信，别人就更信服你，最后真搞定了。信念塑造现实，这话一点不玄乎。</p>
+
+      <h3>4. 什么叫“习得性无助”？</h3>
+      <p>被打击到绝望，干脆躺平认命。<br><strong>例子：</strong>你连续考了三次公务员都差几分，刚开始还痛苦，后来你干脆不复习了，心想“我天生不是考试的料，努力有啥用”。这就是被“打击教育”驯化了。就像被电怕了的狗，即使笼子门开了，它也不敢跑。</p>
+
+      <p><strong>【这些认知偏差对我做决定的影响】</strong><br>最坑人的是：你高估自己，低估环境。导致你选工作只选“配得上自己才华”的，看不上小机会；谈恋爱总觉得自己能找到更好的；投资总觉得自己能抄底，别人都是韭菜。知道这点后，每次做重大决定前，问自己一句：“如果换成一个跟我能力一样但运气极差的人，他会怎么选？”</p>
+
+      <h2>板块二：我们怎么看别人（社会认知与归因）</h2>
+      <h3>1. 什么叫“基本归因错误”？</h3>
+      <p>看别人只看人品，看自己只看环境。<br><strong>例子：</strong>你看到服务员上菜慢了，心里骂“这服务员真懒散”（人品归因）。但如果你自己上班迟到，你会说“今天地铁故障，实在没办法”（环境归因）。我们总是低估环境对人的塑造力。</p>
+
+      <h3>2. 什么叫“确认偏误”？</h3>
+      <p>你心里有了个立场，之后你找的所有证据都是为了证明自己是对的。<br><strong>例子：</strong>你觉得新来的领导“看你不顺眼”。他路过没跟你打招呼，你心想“果然冷暴力我”；他给你派活，你心想“果然针对我”。他笑一下你都觉得是“笑里藏刀”。你完全忽略他可能只是近视、或者家里出了事心情不好。</p>
+
+      <h3>3. “首因效应”和“近因效应”</h3>
+      <p>首因效应就是第一印象，像钉子一样难拔。因为大脑为了省力，先给你贴个标签，后面信息都得按这个标签归类。<br><strong>例子：</strong>相亲第一次见面，对方穿着得体、帮你拉椅子，哪怕后面发现他有点抠门，你也会想“他只是节俭而已”。近因效应相反，如果你刚认识一个人，还没形成印象，那么你最近一次跟他互动特别糟糕，你会以这次为准。但总体来说，第一印象的权重巨大。</p>
+
+      <h3>4. “刻板印象”和“刻板印象威胁”</h3>
+      <p>刻板印象是地图炮，认为“东北人全咋样”“女司机全咋样”。它的坏处是让你懒得动脑。<br>“刻板印象威胁”更阴险：你害怕自己验证了别人对你的负面标签，结果因为太紧张，反而真的搞砸了。<br><strong>例子：</strong>女生考数学前，如果被提醒“女生数学天生弱”，她考试时就会分心、焦虑，结果真的考砸了。不是能力差，是焦虑占用了大脑内存。</p>
+
+      <p><strong>【怎么训练自己更准确判断别人？】</strong><br>三字诀：慢、换、问。<br>慢：别急着下结论，告诉自己“且慢，再看看”。<br>换：强行换位思考，如果我是他，遇到他那种处境（堵车、房贷、老板骂），我会怎样？<br>问：找对方聊聊，了解他当时的真实想法。大多数时候，你的“以为”都是错的。</p>
+
+      <h2>板块三：我们怎么被别人影响（从众与服从）</h2>
+      <h3>1. 什么叫“从众”？</h3>
+      <p>就是随大流。看到别人干啥你干啥，因为跟着大部队最省心、最安全。</p>
+      <h3>2. “规范性从众” vs “信息性从众”</h3>
+      <p><strong>规范性从众：</strong>为了被群体接纳，不想显得不合群。例子：办公室里大家都穿商务装，你不好意思穿短裤拖鞋。<br><strong>信息性从众：</strong>在不确定的情况下，你认为“多数人知道的比我多”，所以跟着做。例子：你路过两家饭店，一家排长队，一家没人，你大概率去排长队的那家，因为你觉得群众的眼睛是雪亮的（虽然可能那家店是请托排的）。</p>
+
+      <h3>3. 什么叫“服从权威”？</h3>
+      <p>只要对方穿着制服、有头衔、态度强硬，你就容易听他的，哪怕他让你做违背良心的事。<br>生活例子：护士接到电话（对方自称是医生）让她给病人用未经核实的药，很多护士会照做，因为“医生的话”代表权威。在公司里，领导让你做一个你明知有风险的操作，你大概率也会服从，因为他是“领导”。</p>
+
+      <h3>4. “社会助长” vs “社会惰化”</h3>
+      <p><strong>社会助长：</strong>有人围观时，你熟练的事情会做得更好。例子：你在家弹吉他一般，一到舞台上打了鸡血，超常发挥。<br><strong>社会惰化：</strong>一群人干活时，你反而摸鱼。因为责任分散了，干好干坏没人知道。例子：小组作业，你心想“反正我不做，别人也会做”，结果大家都这么想，最后集体挂科。</p>
+
+      <p><strong>【什么时候从众？什么时候扛住？】</strong><br>容易从众：情况模糊（你不知道怎么办）、群体是专家、群体多数一致、你特别在意这个群体的评价。<br>能扛住：当你事先公开表过态（比如发朋友圈说“我绝不买XXX”），当你身边有一个盟友（只要有一人跟你意见相同，从众压力就骤减），当这个决定后果很严重时。</p>
+
+      <h2>板块四：我们怎么被说服和洗脑（说服与态度改变）</h2>
+      <h3>1. “中心路径” vs “外周路径”</h3>
+      <p>这是你处理信息的两种模式。<br><strong>中心路径：</strong>动脑子，仔细看参数、看疗效、看逻辑。<br><strong>外周路径：</strong>凭感觉，看包装、看谁代言、看销量。<br>例子：你在直播间买东西。如果你在买电脑，研究CPU和显卡，那是中心路径。如果你只是因为“李佳琦喊哦买噶，姐妹们都在抢”，你就下单了，那是外周路径。高消费、高风险决策走中心路径；低价值、图开心决策走外周路径。</p>
+
+      <h3>2. 最有效的说服方式？</h3>
+      <p>三个要素：谁说（信源）、说什么（内容）、对谁说（受众）。<br>信源：长得好看、看着专业、像你朋友的人说话最管用。<br>内容：制造恐惧+给出具体方案最管用。比如“你不刷牙会烂牙（恐惧），用这款牙膏能防蛀（方案）”。<br>受众：心情好的人容易被说服（所以销售先跟你套近乎）；自尊心中等的人最容易被说服。</p>
+
+      <h3>3. 什么叫“睡眠者效应”？</h3>
+      <p>过段时间，你会忘记谁说的，只记得结论。<br>例子：你看了一篇公众号文章，觉得有道理，但忘了是专家写的还是营销号写的。一个月后，你可能只记得“每天喝八杯水好”，忘了是谁说的。这就是为什么谣言过段时间还会卷土重来——我们记住了信息，却剥离了对信源的怀疑。</p>
+
+      <h3>4. 怎么抵抗说服（免疫效应）？</h3>
+      <p>就像打疫苗，先接触微弱的病毒（反面观点），产生抗体。<br>例子：如果你想让孩子不被网络骗子忽悠，别只跟他说“骗子坏”。你跟他玩个游戏，你扮演骗子，用各种话术骗他，让他想办法反驳你。他演练过如何反驳，以后真遇到骗子，大脑就自动启动防御。</p>
+
+      <p><strong>【怎么分辨是说服还是操纵？】</strong><br>看对方是否允许你自由选择。<br>正常说服：把优缺点摆明，说“你决定”。<br>操纵：不让你接触其他信息，用时间压力逼你（“仅限今天”），利用你的愧疚感或恐惧。</p>
+
+      <h2>板块五：我们怎么对待别人（偏见、歧视与攻击）</h2>
+      <h3>1. 什么叫“内群体偏袒”？</h3>
+      <p>只要给我把人分成“我们”和“他们”，我就会偏心“我们”。<br>例子：哪怕你是随机被分到一个小组，你也会觉得自己组的人更可爱、更有才华。公司里市场部和产品部互相看不上，不是因为真有仇，就是因为这种天然的“我们vs他们”心理。</p>
+
+      <h3>2. 偏见怎么形成的？</h3>
+      <p><strong>替罪羊理论：</strong>我过得不好，总得找个人怪罪。谁好欺负就怪谁。<br><strong>社会认同理论：</strong>为了抬高自己，必须贬低外群体。“我们高贵因为他们低贱”。<br>例子：小区丢了自行车，业主不去找监控，先在群里骂“肯定是那帮租户干的”，这就是典型替罪羊。</p>
+
+      <h3>3. 什么叫“接触假说”？</h3>
+      <p>怎么减少偏见？把他们拉到一个桌上吃饭、一起干活。<br>例子：以前美国不同种族社区冲突严重，后来发现，如果让两边的孩子为了共同目标（比如一起拼拼图赢奖品）合作，他们的敌意就会大幅下降。关键是地位平等、有共同目标。</p>
+
+      <h3>4. 人为什么会攻击？“挫折-攻击假说”</h3>
+      <p>你一不顺心，就想攻击，但这股火会找软柿子捏。<br>例子：路怒症。你在公司被老板骂了（挫折），你不敢骂老板。开车时前面有人变道，你瞬间爆发，疯狂按喇叭骂人，因为对方是安全的发泄对象。</p>
+
+      <h3>5. 网络攻击 vs 现实攻击</h3>
+      <p>网络攻击更狠、更频繁。因为匿名、看不见对方的痛苦表情、没有即时惩罚。现实中你推人一把，对方马上反击或哭，你会刹车。网上你打几个字，对方隔着屏幕哭你看不见，所以同理心关闭，恶毒程度放大十倍。</p>
+
+      <h2>板块六：我们怎么靠近别人（吸引、亲密与助人）</h2>
+      <h3>1. 什么样的人最有吸引力？</h3>
+      <p>排序：距离近 > 长得顺眼 > 三观相似 > 互补。<br>例子：为什么很多人跟同事、同学结婚了？不是因为他们最帅最美，而是距离近，天天见面。颜值这东西，看顺眼了都差不多。长远来看，相似性（笑点一致、三观一致）决定能不能处下去。</p>
+
+      <h3>2. 什么叫“曝光效应”？</h3>
+      <p>见面的次数越多，好感度越高。（前提是第一次印象不坏）<br>例子：为什么明星要拼命上综艺、刷脸？因为哪怕你没觉得他特别帅，天天在各种地方看到他，你就觉得他“顺眼”了。追女生也是，只要她不讨厌你，多出现在她视线里，就比什么都管用。</p>
+
+      <h3>3. “激情之爱” vs “伴侣之爱”</h3>
+      <p><strong>激情之爱：</strong>多巴胺上头，心跳加速，看不见缺点。通常持续几个月到两年。<br><strong>伴侣之爱：</strong>平静、信任、深厚的友谊。知道对方打呼噜、抠脚，但还是觉得跟他过日子踏实。<br>为什么热恋容易分手？因为激情消退后，如果没有培养出“伴侣之爱”，就觉得“不爱了”。长久的关系不是找那个让你心动的人，而是跟那个让你心定的人一起经营。</p>
+
+      <h3>4. 人为什么帮陌生人？“旁观者效应”</h3>
+      <p>人越多，单个路人帮忙的概率越低。因为责任被摊薄了，大家都在等别人动。<br>例子：街上有人倒地，如果有10个人看着，每个人都想“别人会打120的”，结果没人打。如果你倒在地上，一定要指着一个人喊：“那个穿红衣服的大哥，快帮我打120！” 把责任锁定给一个人，你得救概率飙升。</p>
+
+      <h3>5. 什么样的人更容易获得幸福关系？</h3>
+      <p>安全型依恋的人。他们不患得患失，信任对方，也自信。这种人吸引来的也是安全型的人。相反，焦虑型（总怕对方跑）和回避型（总把对方推开）容易互相吸引，然后相爱相杀。</p>
+
+      <h2>板块七：群体中的我（群体行为与去个性化）</h2>
+      <h3>1. 什么叫“去个性化”？</h3>
+      <p>在群体里，你匿名了、责任分散了，你平时压抑的本能（尤其是攻击性）就放出来了。<br>例子：平时你在网上是个文明人，但进了某个微博骂战群，顶着虚拟头像，你可能也会跟着用最难听的话问候别人全家。因为你觉得“反正没人知道是我”。</p>
+
+      <h3>2. 什么叫“群体极化”？</h3>
+      <p>一群人讨论后，观点会变得更极端。保守的会更保守，冒险的会更冒险。<br>例子：一个饭圈粉丝群，刚开始只是觉得“我爱豆被批评了有点不爽”，大家在群里一聊，你一句“他就是在黑我们”，我一句“我们必须反击”，最后变成组团去屠屏、人肉对方。</p>
+
+      <h3>3. 什么叫“群体思维”？</h3>
+      <p>团队里大家都只想维持和谐，不敢提反对意见，导致做出愚蠢决策。<br>例子：一个创业团队，老板提了个漏洞百出的方案，底下人全看出来了，但没人敢说，因为“老板信心满满，我不想扫兴”“大家都点头，我摇头会不会不合群”。最后全公司陪葬。精英团队往往更容易犯这错，因为他们太自信了。</p>
+
+      <p><strong>【如何在群体中保持独立思考？】</strong><br>技术性手段：给自己设一个“魔鬼代言人”角色，强制自己必须提出一个反对理由。<br>心态上：记住一句话——如果所有人都想法一样，那说明有人没在动脑子。</p>
+
+      <hr>
+
+      <h2>全书总结</h2>
+      <p>用一句最通俗的话概括全书：<br><strong>你以为是你的大脑在开车，其实你的大脑就是个收音机，一直在接收周围环境的电波，你以为的“自主选择”，大部分是电波帮你调好的台。</strong></p>
+      <p>学完这本书，我对“人”的理解发生的三个最大改变：</p>
+      <ul>
+        <li><strong>人没有我想象的那么“自由”。</strong> 我以前觉得好人坏人泾渭分明。现在我知道，把我放在那个抢银行的环境里，我可能也会犯罪；把杀人犯放在我温暖的家庭里，他可能也是好人。情境的力量大于人格的力量。对别人多点宽容，对自己多点警惕。</li>
+        <li><strong>我的直觉极其不可靠。</strong> 我以前特别信“第六感”。现在知道，我的直觉充满偏差（自我服务、基本归因、确认偏误）。重要的决策，绝对不能靠直觉，必须拉长决策时间，收集反面证据。</li>
+        <li><strong>幸福不取决于“我”，而取决于“我们”。</strong> 这本书大量研究证明，能跟他人建立深度、温暖关系的人，最健康、最快乐。那些拼命卷、拼命证明“我比你强”的人，最后都很孤独。把精力从“赢过别人”转移到“连接别人”上，是性价比最高的人生投资。</li>
+      </ul>
+
+      <h2>明天就能用的3件事</h2>
+      <ol>
+        <li><strong>第1件：</strong>明天开会或小组讨论时，如果你跟大多数人意见一致，强制自己扮演“反派”，提出一个反对理由。 哪怕这个理由是硬找的。这能帮你抵抗“群体思维”，逼自己真正动脑。</li>
+        <li><strong>第2件：</strong>遇到让你生气的人（比如插队的、服务差的），在心里默念“基本归因错误”。 告诉自己：不是他人品差，可能是他今天遭遇了极糟糕的事。这样你的血压会降一半，避免无谓冲突。</li>
+        <li><strong>第3件：</strong>如果明天你在公共场合需要帮助（比如提不动箱子），不要喊“谁来帮帮我”， 要盯着人群中某个看起来面善的人，直接说：“那位穿蓝衣服的大哥，麻烦你帮我抬一下这个箱子。” 把旁观者变成指定责任人，成功率提高90%。</li>
+      </ol>
+
+      <p style="margin-top: 2.2rem; font-style: italic; color: #3d3d3d;">好了，放下书，去生活里观察这些“提线”吧。你会发现，世界变得像一场精彩的魔术秀，而你，开始看到背后的绳子了。祝你玩得开心。</p>
+
+    </article>
+  </div>
+
+  <!-- 返回顶部按钮 -->
+  <button class="back-top" id="backToTop" aria-label="返回顶部">↑ 顶部</button>
+
+  <script>
+    (function() {
+      // 1. 阅读进度条
+      const progressFill = document.getElementById('readingProgressFill');
+      function updateProgress() {
+        const scrollY = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? (scrollY / docHeight) * 100 : 0;
+        progressFill.style.width = Math.min(progress, 100) + '%';
+        // 为无障碍
+        const bar = progressFill.closest('.progress-bar');
+        if (bar) bar.setAttribute('aria-valuenow', Math.round(progress));
+      }
+      window.addEventListener('scroll', updateProgress, { passive: true });
+      window.addEventListener('resize', updateProgress, { passive: true });
+      updateProgress();
+
+      // 2. 返回顶部（平滑滚动）
+      const backBtn = document.getElementById('backToTop');
+      backBtn.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      // 3. 可选的：键盘支持
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Home' && !e.ctrlKey && !e.metaKey) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          e.preventDefault();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
