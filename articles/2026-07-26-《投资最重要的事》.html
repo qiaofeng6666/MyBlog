@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>沉浸阅读 · 投资最重要的事</title>
+  <style>
+    /* 全局重置 & 极简基调 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #faf8f5;  /* 柔和米白 */
+      color: #1e1e1e;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.8;
+      padding: 0 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    /* 阅读进度条 —— 细长优雅 */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: #b9a28c;  /* 柔和大地色 */
+      width: 0%;
+      z-index: 1000;
+      transition: width 0.1s ease-out;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    /* 主卡片：沉浸式容器，留白充足 */
+    .reading-card {
+      max-width: 780px;
+      width: 100%;
+      margin: 2.5rem auto 4rem;
+      background-color: transparent;
+      animation: fadeUp 0.8s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+      opacity: 0;
+      transform: translateY(24px);
+      padding: 0 0.25rem;
+    }
+
+    @keyframes fadeUp {
+      0% { opacity: 0; transform: translateY(28px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 文章头部 */
+    .article-header {
+      margin-bottom: 2.2rem;
+      text-align: center;
+      border-bottom: 1px solid #eae6e0;
+      padding-bottom: 1.8rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 0.6rem;
+      color: #1e1e1e;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 0.4rem 0.9rem;
+      font-size: 0.95rem;
+      color: #5e5a55;
+      margin-top: 0.4rem;
+    }
+
+    .meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    .meta .divider {
+      color: #cbc4bb;
+      font-weight: 300;
+      user-select: none;
+    }
+
+    /* 正文排版 */
+    article {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: #23201c;
+    }
+
+    article p {
+      margin-bottom: 1.5rem;
+      word-break: break-word;
+    }
+
+    article h2 {
+      font-size: 1.6rem;
+      font-weight: 650;
+      margin: 2.2rem 0 1rem;
+      letter-spacing: -0.01em;
+      color: #1e1e1e;
+    }
+
+    article h3 {
+      font-size: 1.25rem;
+      font-weight: 620;
+      margin: 1.8rem 0 0.6rem;
+      color: #2a2723;
+    }
+
+    /* 引用块 —— 左侧竖条，淡色斜体 */
+    blockquote {
+      margin: 1.8rem 0;
+      padding: 0.8rem 1.4rem 0.8rem 1.8rem;
+      background: #f4f1ec;
+      border-left: 4px solid #c6b8ab;
+      color: #4d4740;
+      font-style: italic;
+      border-radius: 0 6px 6px 0;
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    blockquote p {
+      margin-bottom: 0.4rem;
+    }
+
+    blockquote p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* 数字列表 / 加粗强调 */
+    strong {
+      font-weight: 650;
+      color: #1e1e1e;
+    }
+
+    /* 小字号辅助 (用于检查清单等) */
+    .checklist-note {
+      background: #f5f2ed;
+      padding: 1.4rem 1.8rem;
+      border-radius: 12px;
+      margin: 2rem 0 1.5rem;
+    }
+
+    .checklist-note p {
+      margin-bottom: 0.6rem;
+    }
+
+    .checklist-note p:last-child {
+      margin-bottom: 0;
+    }
+
+    hr {
+      border: 0;
+      border-top: 1px solid #e2dcd4;
+      margin: 2.4rem 0;
+    }
+
+    /* 返回顶部按钮 —— 右下角，仅非首屏可见 */
+    #back-to-top {
+      position: fixed;
+      bottom: 2.4rem;
+      right: 2rem;
+      width: 44px;
+      height: 44px;
+      background: #e3dbd1;
+      color: #2b2620;
+      border: none;
+      border-radius: 40px;
+      font-size: 1.8rem;
+      font-weight: 300;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+      transition: opacity 0.25s, background 0.2s, transform 0.2s;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, sans-serif;
+      backdrop-filter: blur(2px);
+      background: rgba(225, 217, 207, 0.7);
+      border: 1px solid rgba(200, 188, 175, 0.25);
+    }
+
+    #back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    #back-to-top:hover {
+      background: #d3c9bc;
+      transform: scale(1.02);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+    }
+
+    #back-to-top:focus-visible {
+      outline: 2px solid #b09b89;
+      outline-offset: 2px;
+    }
+
+    /* 响应式 —— 手机内边距缩小 */
+    @media (max-width: 640px) {
+      body {
+        padding: 0 1rem;
+      }
+      .reading-card {
+        margin: 1.2rem auto 2.8rem;
+        padding: 0;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+      .meta {
+        font-size: 0.85rem;
+        gap: 0.2rem 0.6rem;
+      }
+      article {
+        font-size: 1rem;
+      }
+      article h2 {
+        font-size: 1.4rem;
+      }
+      blockquote {
+        padding: 0.6rem 0.8rem 0.6rem 1.2rem;
+        margin: 1.4rem 0;
+      }
+      #back-to-top {
+        bottom: 1.4rem;
+        right: 1.2rem;
+        width: 40px;
+        height: 40px;
+        font-size: 1.6rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      h1 {
+        font-size: 1.7rem;
+      }
+      .meta {
+        font-size: 0.78rem;
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+    }
+
+    /* 大屏留白更舒适 */
+    @media (min-width: 1024px) {
+      .reading-card {
+        margin: 3.5rem auto 5rem;
+      }
+      body {
+        padding: 0 2.5rem;
+      }
+    }
+
+    /* 列表、数字等自然样式 */
+    ul, ol {
+      padding-left: 1.6rem;
+      margin: 1rem 0 1.4rem;
+    }
+    li {
+      margin-bottom: 0.35rem;
+    }
+
+    /* 小标签点缀 */
+    .tag-badge {
+      display: inline-block;
+      background: #ede8e1;
+      border-radius: 30px;
+      padding: 0.1rem 0.7rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: #4f4840;
+      margin-right: 0.2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 顶部进度条 -->
+  <div id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+  <!-- 主内容卡片 -->
+  <div class="reading-card">
+    <header class="article-header">
+      <h1>《投资最重要的事》</h1>
+      <div class="meta">
+        <span>✍️ 霍华德·马克斯</span>
+        <span class="divider">|</span>
+        <span>📅 2026年7月26日</span>
+        <span class="divider">|</span>
+        <span>⏳ 5分钟</span>
+      </div>
+    </header>
+
+    <article>
+      <!-- 第一部分 -->
+      <h2>第一部分：这本书的核心思维方式<span style="font-size:1.1rem; font-weight:400; color:#4d4740;">（先改脑子，再动手）</span></h2>
+      <p>这本书不教你看K线图，也不教你怎么算公司账本，它专门“修理”你的思考方式。因为投资赚不赚钱，90%取决于你怎么想。</p>
+
+      <h3>1. 第一层思维 vs 第二层思维（想得要比别人深一层）</h3>
+      <p><strong>第一层思维（简单想）</strong>：比如“这家奶茶店排队人超多，生意火爆，我赶紧入股！”——这是直觉，是大家都能看到的表面现象。</p>
+      <p><strong>第二层思维（往深想）</strong>：“排队人多是事实，但老板已经把明年扩张的利好消息吹得满大街都是了，股价早就把未来的钱涨进去了。现在冲进去，我可能是接盘侠，得等等再说。”——这是独立判断，看到别人没看到的。</p>
+      <p><strong>作者为什么说想赚钱必须用第二层思维？</strong><br>因为投资是“抢椅子”游戏，你想赚钱，就得比对手（市场里其他人）想得更深、更对。如果大家都觉得某只股票好，那它的价格早就被抢高了，你买贵了，以后就很难赚。对普通人的启示：别跟风买“大家都知道好”的东西，多问一句：“这个好消息，是不是已经反映在价格里了？”</p>
+
+      <h3>2. 市场是“情绪病人”，你得利用它的脾气</h3>
+      <p>作者认为，市场不是课本里说的“理性先生”，而是一个狂躁抑郁症患者：</p>
+      <ul>
+        <li><strong>狂躁时（牛市）</strong>：觉得啥都能涨，垃圾股也当宝贝，价格飞上天。</li>
+        <li><strong>抑郁时（熊市）</strong>：觉得啥都要完蛋，好公司也乱扔，价格跌到土里。</li>
+      </ul>
+      <p><strong>市场定价为啥经常错？</strong> 因为参与的人会害怕和贪婪，所以价格经常偏离“真实价值”。<br>普通人怎么利用？ 很简单：在市场“抑郁”得扔东西时，去捡便宜货；在市场“狂躁”得抢东西时，把手里的货卖给它。 千万别反过来——别人抢你也抢，别人扔你也扔。</p>
+
+      <h3>3. 风险不是“上蹿下跳”，是“永久亏钱”</h3>
+      <p>很多人觉得波动大就是风险大，但作者说：<strong>真正的风险，是你卖出的那一刻，发现本金真真切切亏掉了，再也回不来。</strong></p>
+      <p>为什么“高风险不等于高收益”？ 因为大家一窝蜂去买“高风险”的东西时，会把价格推得极高，未来的收益空间反而被挤没了（比如2021年追高买垃圾股的人）。风险高，是因为买得太贵，而不是东西本身刺激。</p>
+      <blockquote>
+        <p>“风险的反常性”：当所有人都觉得“绝对安全”（比如牛市顶峰），往往价格最贵，风险最大，因为大家放松警惕了。当所有人都觉得“世界末日”（比如熊市谷底），往往价格最便宜，风险最小，因为恐慌已经把水分挤干了。</p>
+      </blockquote>
+      <p><strong>所以：感觉安全时最危险，感觉危险时最安全。</strong></p>
+
+      <hr>
+
+      <!-- 第二部分 -->
+      <h2>第二部分：具体该怎么做 <span style="font-size:1.1rem; font-weight:400; color:#4d4740;">（实战心法四招）</span></h2>
+
+      <h3>第一招：最重要的动作——控制风险（先想怎么不输）</h3>
+      <p>作者的名言：“投资像打棒球，只有不挥棒才不会出局。”意思是，你不出手就不会亏钱，钱在手里永远有主动权。</p>
+      <p><strong>“防守型投资”就是：先确保自己活下来，再考虑赚多少。</strong> 普通人怎么做？</p>
+      <ul>
+        <li>不借钱投资（不加杠杆）。</li>
+        <li>不把所有钱押在一只股票或一个行业上。</li>
+        <li>买之前先问：“如果这笔钱亏掉一半，我能承受吗？”不能，就不买。</li>
+      </ul>
+
+      <h3>第二招：最重要的态度——买得便宜，比买好东西重要</h3>
+      <p>“买得好比买好的更重要”——翻译成大白话：再好的茅台，卖你5000块一瓶也不是好投资；再普通的二锅头，卖你5块一瓶，那就是捡漏。</p>
+      <p><strong>用菜市场比喻：</strong></p>
+      <ul>
+        <li>一颗新鲜水灵的白菜（好公司），要价100块（太贵），别碰，因为不值。</li>
+        <li>一棵有点蔫的白菜（普通公司或遇到坏消息），只卖1毛钱（极度便宜），值得买，因为稍微恢复点元气就能赚。</li>
+      </ul>
+      <p><strong>核心：你赚的不是“公司变好”的钱，而是“价格从低估回到正常”的钱。</strong>所以天天盯着价格，别光盯着名气。</p>
+
+      <h3>第三招：最重要的认知——你不能预测，只能准备</h3>
+      <p>作者直说：没人知道下个月利率涨不涨、明天股市跌不跌。 那普通人咋办？</p>
+      <ul>
+        <li><strong>预测派</strong>：押注“大盘下季度肯定涨”，然后全仓干。（容易死）</li>
+        <li><strong>准备派</strong>：想好三种情况——“如果涨了，我有多少股票？如果跌了，我手里有现金抄底吗？如果一直震荡，我的分红够生活吗？”然后都安排好。</li>
+      </ul>
+      <p>区别就是：不把命运押在一种可能性上，而是给任何天气都备好伞和防晒霜。</p>
+
+      <h3>第四招：最重要的武器——耐心和逆向投资（反着来，但要科学）</h3>
+      <p>“别人贪婪我恐惧，别人恐惧我贪婪”——具体怎么操作？</p>
+      <p><strong>恐慌性抛售场景（比如突发利空，大盘暴跌）：</strong><br>普通人心理：“完蛋了，赶紧卖！”<br>逆向做法：拿出之前留好的“弹药”（现金），分批买入那些跌了30%以上、但公司业务没垮的龙头股。怎么克服恐惧？不看账户，只盯着“价格比价值低多少”，告诉自己：“我在打折季买日用品，有啥好怕？”</p>
+      <p><strong>疯狂抢购场景（比如某概念爆火，天天涨停）：</strong><br>普通人心理：“再不追就没了！”<br>逆向做法：把这只股票从自选股里删掉，出去跑个步。告诉自己：“超市鸡蛋涨价到20块一斤，我难道要冲进去抢吗？我等它回落到5块再说。”宁可错过，不可做错。</p>
+
+      <hr>
+
+      <!-- 第三部分 检查清单 -->
+      <h2>第三部分：全书最有价值的“检查清单” <span style="font-size:1.1rem; font-weight:400; color:#4d4740;">（5条，像备忘录一样用）</span></h2>
+      <div class="checklist-note">
+        <p>🔹 <strong>价格是你付的，价值是你得到的。</strong> —— 买任何东西前，先问：“它真实值多少？我现在付的价格合理吗？”</p>
+        <p>🔹 <strong>永远不要忘记，6英尺高的河也会淹死人。</strong> —— 再“安全”的投资，只要加杠杆（借钱）或下重注，都能让你死透。控制单笔投入比例。</p>
+        <p>🔹 <strong>最重要的不是追求伟大成功，而是避免重大错误。</strong> —— 少亏一次大的，比多赚一次小的更重要。止损纪律要刻在骨子里。</p>
+        <p>🔹 <strong>牛市三阶段：少数人看好→多数人看好→所有人都看好。</strong> —— 当菜场大妈都给你推股票时，就是“所有人都看好”，该警惕了。</p>
+        <p>🔹 <strong>“我没有见过能预测未来的人。”</strong> —— 别信任何大V或专家的“精准点位预测”，把他们的观点当情绪参考，别当行动指令。</p>
+      </div>
+
+      <hr>
+
+      <!-- 第四部分 一句话总结 -->
+      <h2>第四部分：一句话总结</h2>
+      <p>别试图猜涨跌，只专注买得便宜、留好安全垫，在市场发疯时冷静捡漏，在市场疯狂时悄悄离场。</p>
+
+      <blockquote>
+        <p>朋友，这本书通篇就讲一件事：投资不是比谁更聪明，而是比谁更冷静、更守纪律。 把上面这些心法记在心里，你就已经跑赢了90%追涨杀跌的人。祝心态稳稳，钱包慢慢鼓！</p>
+      </blockquote>
+
+      <!-- 结束装饰（极简） -->
+      <p style="text-align:center; color:#9a9187; font-size:0.9rem; margin-top:2.8rem; letter-spacing:0.5px;">—— 静心 · 深读 ——</p>
+    </article>
+  </div>
+
+  <!-- 返回顶部按钮 -->
+  <button id="back-to-top" aria-label="返回顶部">↑</button>
+
+  <script>
+    (function() {
+      "use strict";
+
+      const progressBar = document.getElementById('progress-bar');
+      const backBtn = document.getElementById('back-to-top');
+      const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+      // 更新进度条 & 返回顶部显隐
+      function updateProgressAndButton() {
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        const winHeight = window.innerHeight;
+        const docHeight = document.documentElement.scrollHeight;
+
+        // 进度条百分比
+        const scrollableHeight = docHeight - winHeight;
+        let percent = 0;
+        if (scrollableHeight > 0) {
+          percent = Math.min(100, (scrollY / scrollableHeight) * 100);
+        }
+        progressBar.style.width = percent + '%';
+        progressBar.setAttribute('aria-valuenow', Math.round(percent));
+
+        // 返回顶部：滚动距离 > 窗口高度 15% 显示
+        const threshold = winHeight * 0.15;
+        if (scrollY > threshold) {
+          backBtn.classList.add('visible');
+        } else {
+          backBtn.classList.remove('visible');
+        }
+      }
+
+      // 平滑滚动到顶部
+      function scrollToTop() {
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      }
+
+      // 事件绑定
+      window.addEventListener('scroll', updateProgressAndButton, { passive: true });
+      window.addEventListener('resize', updateProgressAndButton, { passive: true });
+      backBtn.addEventListener('click', scrollToTop);
+
+      // 初始更新 (保证首次加载时进度条和按钮状态正确)
+      updateProgressAndButton();
+
+      // 额外：当页面完全加载后再校准一次 (防止布局偏移)
+      window.addEventListener('load', function() {
+        updateProgressAndButton();
+      });
+
+      // 对触摸设备，点击返回顶部后仍保持状态
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>漫步华尔街 · 沉浸阅读</title>
+    <style>
+        /* 全局重置 & 极简风格 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #faf9f7;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #1e1e1e;
+            line-height: 1.8;
+            padding: 0 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* 阅读进度条 — 顶部细长条 */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #e8e5e0;
+            z-index: 1000;
+            transition: opacity 0.15s ease;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: #1e1e1e;
+            transition: width 0.1s ease;
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* 主卡片 — 沉浸式阅读容器 */
+        .reading-card {
+            max-width: 780px;
+            width: 100%;
+            margin: 3rem auto 4rem;
+            background: #ffffff;
+            padding: 3rem 3.5rem;
+            border-radius: 24px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.02), 0 2px 8px rgba(0, 0, 0, 0.02);
+            transition: box-shadow 0.2s;
+            /* 动画：从下到上 + 淡入 */
+            animation: cardFadeIn 0.8s cubic-bezier(0.15, 0.75, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(28px);
+        }
+
+        @keyframes cardFadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(28px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 文章头部 */
+        article h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+            margin-top: 0.2rem;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+
+        /* 元数据行 */
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: baseline;
+            gap: 0.6rem 0.2rem;
+            font-size: 0.95rem;
+            color: #5a5a5a;
+            margin-bottom: 2.2rem;
+            border-bottom: 1px solid #efedea;
+            padding-bottom: 1.2rem;
+        }
+        .meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            white-space: nowrap;
+        }
+        .meta .divider {
+            color: #ccc;
+            font-weight: 200;
+            padding: 0 0.2rem;
+            user-select: none;
+        }
+
+        /* 正文排版 */
+        article p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1.4rem;
+            color: #222;
+            font-weight: 400;
+            word-break: break-word;
+        }
+
+        /* 引用块 — 左侧竖条 + 斜体 */
+        blockquote {
+            margin: 2rem 0 2rem 0;
+            padding: 0.8rem 0 0.8rem 1.8rem;
+            border-left: 4px solid #d0ccc6;
+            background: transparent;
+            color: #3d3d3d;
+            font-style: italic;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            letter-spacing: 0.01em;
+            border-radius: 0 4px 4px 0;
+            background-color: #f8f7f5;
+            padding-right: 1.2rem;
+        }
+        blockquote p {
+            margin-bottom: 0.4rem;
+            font-style: italic;
+        }
+        blockquote p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 小标题/粗体强调（人工加粗） */
+        strong {
+            font-weight: 600;
+            color: #111;
+        }
+
+        /* 文中子标题（非h2，但作为视觉分隔） */
+        .section-title {
+            font-weight: 600;
+            font-size: 1.25rem;
+            margin-top: 2rem;
+            margin-bottom: 0.6rem;
+            color: #1a1a1a;
+            letter-spacing: -0.01em;
+        }
+
+        /* 响应式：手机 & 平板 */
+        @media (max-width: 700px) {
+            body {
+                padding: 0 0.8rem;
+            }
+            .reading-card {
+                padding: 2rem 1.6rem;
+                margin: 2rem auto 3rem;
+                border-radius: 20px;
+            }
+            article h1 {
+                font-size: 2rem;
+            }
+            .meta {
+                font-size: 0.85rem;
+                gap: 0.2rem;
+                flex-wrap: wrap;
+            }
+            article p {
+                font-size: 1rem;
+            }
+            blockquote {
+                padding-left: 1.2rem;
+                margin: 1.6rem 0;
+                font-size: 0.98rem;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .reading-card {
+                padding: 1.5rem 1.2rem;
+            }
+            article h1 {
+                font-size: 1.8rem;
+            }
+            .meta span {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* 返回顶部按钮 — 右下角 */
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 44px;
+            height: 44px;
+            background-color: #1e1e1e;
+            color: #faf9f7;
+            border: none;
+            border-radius: 40px;
+            font-size: 1.6rem;
+            line-height: 1;
+            font-weight: 300;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: background 0.2s, opacity 0.25s, transform 0.15s;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            user-select: none;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .back-to-top:hover {
+            background-color: #333;
+        }
+        .back-to-top:active {
+            transform: scale(0.94);
+        }
+
+        /* 小点缀：文章内分隔 */
+        hr {
+            border: 0;
+            height: 1px;
+            background: linear-gradient(to right, #e4e0db, transparent);
+            margin: 2.2rem 0 1.8rem;
+        }
+
+        /* 文末引号装饰 */
+        .signature-note {
+            margin-top: 2.8rem;
+            text-align: right;
+            font-size: 0.95rem;
+            color: #7a7a7a;
+            border-top: 1px solid #efedea;
+            padding-top: 1.5rem;
+        }
+        .signature-note strong {
+            color: #1e1e1e;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- 进度条 -->
+    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+
+    <!-- 主阅读卡片 -->
+    <div class="reading-card">
+        <article>
+            <header>
+                <h1>《漫步华尔街》</h1>
+                <div class="meta">
+                    <span>✍️ 伯顿·马尔基尔</span>
+                    <span class="divider">·</span>
+                    <span>📅 2026年7月25日</span>
+                    <span class="divider">·</span>
+                    <span>⏳ 6分钟</span>
+                </div>
+            </header>
+
+            <!-- 第一部分 -->
+            <p><strong>第一部分：这本书到底在说什么？（核心观点）</strong></p>
+            <p><strong>核心比喻——“随机漫步”</strong>：什么叫“随机漫步”？</p>
+            <p>你见过一个喝醉了酒的人从酒吧出来走路吗？他往左晃三步，往右晃两步，再倒退一步，你根本不知道他下一秒踩哪儿。<br>
+            股价短期涨跌就是这个德行。 因为今天的股价，已经包含了所有已知的消息（业绩、政策、新闻）。那明天股价为啥涨跌？取决于明天突然冒出来的新消息。既然是“新”消息，那本质上就是随机的、无法提前知道的。所以，没人能持续准确预测明天的股价是涨是跌。</p>
+            
+            <p><strong>这个结论怎么来的？</strong><br>
+            书里举了大量学术研究：把瞎蒙的猴子扔飞镖选的股票，和基金经理精心研究的股票放一起比，长期收益差不多。这就说明，短期走势≈抛硬币，纯概率游戏。</p>
+
+            <p><strong>两个老办法为什么靠不住？</strong></p>
+            <p><strong>“坚实基础理论”（看基本面）</strong>：<br>
+            这好比相亲时把对方祖宗十八代、学历、收入、体检报告全查一遍，算出“这个人就值年薪20万”。但问题是，股票的价值很大程度取决于“未来”，而未来谁也算不准。你算得再精细，突然来个新技术或黑天鹅，你算的“坚实基础”瞬间就塌了。作者说：算盘打烂了也算不准未来，对普通人太复杂，而且经常算错。</p>
+
+            <p><strong>“空中楼阁理论”（揣摩心理、追涨杀跌）</strong>：<br>
+            这好比你买球鞋不是因为它好穿，而是觉得“下周隔壁二狗子肯定会花高价找我买”。你完全不管鞋本身值多少，只赌有人比你更傻。问题是，当音乐停止（大家都想卖时），你很可能就是那个最后接盘的“最大傻瓜”。你永远猜不透大众情绪什么时候翻脸。</p>
+
+            <p><strong>历史上的韭菜教训：</strong><br>
+            书里讲了荷兰郁金香狂热（一朵花换一栋楼）、互联网泡沫（公司名后面加个“.com”股价就飞天）。这些故事就一个理：人一旦贪婪起来，跟中邪一样，再离谱的东西都敢抢着买。普通人的教训就是——别觉得自己比当年那些疯狂的人更聪明，你冲进去时，大概率已经是最后一棒。</p>
+
+            <!-- 引用示例 -->
+            <blockquote>
+                <p>“别觉得自己比当年那些疯狂的人更聪明，你冲进去时，大概率已经是最后一棒。”</p>
+            </blockquote>
+
+            <hr>
+
+            <!-- 第二部分 -->
+            <p><strong>第二部分：那普通人到底该怎么投资？（实操建议）</strong></p>
+            <p><strong>终极答案——指数基金：</strong></p>
+            <p>既然个股猜不准，那作者建议普通人买指数基金（ETF）。</p>
+            <p><strong>幼儿园都能懂的解释：</strong><br>
+            你去菜市场，不知道今天白菜会涨还是萝卜会跌。干脆把所有菜（比如沪深300里的300家公司）每样都买一小口。这样，不管哪样菜涨了，你都跟着沾光；哪怕几样烂了，也不影响你整篮子菜的大行情。这就叫“买下整个市场”。</p>
+
+            <p><strong>为啥它能跑赢大多数专业基金经理？</strong><br>
+            数据铁证：过去几十年，美国70%~80%的主动型基金经理，收益跑不过标普500指数基金。原因很简单：</p>
+            <ul style="margin-left: 1.8rem; margin-bottom: 1.4rem; color: #222; list-style-type: disc; line-height: 1.8;">
+                <li>基金经理收管理费、交易费，刨掉费用，净收益就低了。</li>
+                <li>他们为了业绩，频繁换股，反而容易踩错节奏。</li>
+            </ul>
+            <p>而指数基金几乎不交易、几乎没管理费，市场长期是向上走的（经济在发展），所以你躺着拿平均收益，但平均收益反而打败了大多数“折腾”的人。</p>
+
+            <p><strong>打败人性的弱点——别瞎操作：</strong></p>
+            <p>普通人亏钱，真不是因为笨，而是手痒。<br>
+            书里有个巨震撼的数据：<br>
+            假设你在1990年投了1万块美股，到2020年一直拿着，会变成约19万。<br>
+            但如果你因为恐慌或贪心，错过了这30年里涨幅最好的10天，你的收益直接腰斩再腰斩，只剩6万多！</p>
+
+            <p>这告诉我们：<br>
+            股市长期上涨，但绝大部分涨幅集中在极少数几个“暴怒的交易日”里。你根本不知道哪天会暴涨，所以最好的策略就是永远在车上坐着，别瞎下车。频繁买卖 = 大概率错过那几天黄金日。</p>
+
+            <p><strong>生命周期投资法（根据年龄来投资）：</strong></p>
+            <p>书里给了一个超级简单的法则：<br>
+            <strong>你债券（比如国债、纯债基金）的配置比例 ≈ 你的年龄。</strong><br>
+            剩下的钱配置股票指数基金。</p>
+
+            <ul style="margin-left: 1.8rem; margin-bottom: 1.4rem; list-style-type: disc; line-height: 1.8; color: #222;">
+                <li><strong>年轻人（25岁）：</strong> 股票占75%，债券占25%。因为年轻，跌了大不了多等几年涨回来，而且工资在涨，能承受波动。</li>
+                <li><strong>中年人（45岁）：</strong> 股票占55%，债券占45%。上有老下有小，求稳一半，搏一 半。</li>
+                <li><strong>老年人（65岁）：</strong> 股票占35%，债券占65%。退休了指着养老钱，少跌为妙，保命要紧。</li>
+            </ul>
+            <p><strong>核心原则就一句：</strong> 年纪越大，越输不起，所以越要往“稳”的东西上靠。</p>
+
+            <hr>
+
+            <!-- 第三部分 -->
+            <p><strong>第三部分：一句话总结</strong></p>
+            <blockquote>
+                <p>别费劲猜涨跌，别被贪婪恐惧带沟里；按月定投整个市场（指数基金），拿住不动，根据年龄调稳比例，然后踏实过你的日子，让时间帮你钱生钱。</p>
+            </blockquote>
+            <p style="font-weight: 450; color: #1a1a1a;">（全文就记四个字：省心、别动。）</p>
+
+            <!-- 文末装饰 -->
+            <div class="signature-note">
+                <strong>漫步华尔街</strong> · 投资是一场长跑
+            </div>
+        </article>
+    </div>
+
+    <!-- 返回顶部按钮 -->
+    <button class="back-to-top" id="backToTopBtn" aria-label="返回顶部">↑</button>
+
+    <script>
+        (function() {
+            "use strict";
+
+            const progressFill = document.getElementById('progressFill');
+            const backBtn = document.getElementById('backToTopBtn');
+
+            // 更新进度条
+            function updateProgress() {
+                const scrollTop = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                let progress = 0;
+                if (docHeight > 0) {
+                    progress = Math.min(100, (scrollTop / docHeight) * 100);
+                }
+                progressFill.style.width = progress + '%';
+                // aria 值
+                progressFill.parentElement.setAttribute('aria-valuenow', Math.round(progress));
+            }
+
+            // 控制返回顶部按钮可见性
+            function toggleBackButton() {
+                const scrollTop = window.scrollY;
+                const threshold = 120; // 滚动超过120px显示
+                if (scrollTop > threshold) {
+                    backBtn.classList.add('visible');
+                } else {
+                    backBtn.classList.remove('visible');
+                }
+            }
+
+            // 滚动监听 (使用 requestAnimationFrame 节流)
+            let ticking = false;
+            function onScroll() {
+                if (!ticking) {
+                    window.requestAnimationFrame(function() {
+                        updateProgress();
+                        toggleBackButton();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            }
+
+            // 返回顶部平滑滚动
+            function scrollToTop() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+
+            // 监听事件
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', updateProgress, { passive: true });
+            backBtn.addEventListener('click', scrollToTop);
+
+            // 初始化一次
+            updateProgress();
+            toggleBackButton();
+
+            // 如果页面加载后位置变化（如锚点）也刷新
+            window.addEventListener('load', function() {
+                updateProgress();
+                toggleBackButton();
+            });
+        })();
+    </script>
+</body>
+</html>
