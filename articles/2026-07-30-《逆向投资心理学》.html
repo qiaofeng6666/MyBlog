@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>沉浸阅读 · 逆向投资心理学</title>
+    <style>
+        /* 全局重置 & 极简风格 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #faf8f6;   /* 柔和米白 */
+            color: #1e1e1e;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.8;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* 阅读进度条 — 细长优雅 */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: #2c3e50;
+            width: 0%;
+            z-index: 999;
+            transition: width 0.08s ease-out;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+
+        /* 主卡片 — 沉浸式留白 + 淡入动画 */
+        .reading-card {
+            max-width: 820px;
+            width: 100%;
+            background-color: #ffffff;
+            padding: 48px 56px;
+            margin: 40px auto 60px;
+            border-radius: 24px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.02), 0 2px 8px rgba(0, 0, 0, 0.02);
+            animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: box-shadow 0.2s;
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(28px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 文章主体 */
+        article {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 标题 — 粗大居中 */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            text-align: center;
+            margin: 0 0 12px 0;
+            line-height: 1.2;
+            color: #141414;
+        }
+
+        /* 元数据行：作者 日期 阅读时间 */
+        .metadata {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: baseline;
+            gap: 8px 18px;
+            font-size: 0.95rem;
+            color: #5f5f5f;
+            margin-top: 6px;
+            margin-bottom: 32px;
+            letter-spacing: 0.01em;
+        }
+
+        .metadata span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .metadata .divider {
+            color: #c0c0c0;
+            font-weight: 200;
+            user-select: none;
+        }
+
+        /* 正文段落 */
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 1.6rem;
+            color: #1f1f1f;
+            word-break: break-word;
+        }
+
+        /* 引用块 — 左侧竖条 + 斜体 + 淡色 */
+        blockquote {
+            margin: 2rem 0 2rem 0;
+            padding: 0.6rem 0 0.6rem 2rem;
+            border-left: 4px solid #d0d7dd;
+            background-color: transparent;
+            color: #3d4a5a;
+            font-style: italic;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            letter-spacing: 0.01em;
+        }
+
+        blockquote p {
+            margin-bottom: 0.2rem;
+            font-size: 1.05rem;
+            color: #3d4a5a;
+        }
+
+        blockquote p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 小标题（书中分节）使用加粗，非H标签，保持统一 */
+        .section-title {
+            font-weight: 600;
+            font-size: 1.3rem;
+            margin: 2.2rem 0 0.8rem 0;
+            color: #101010;
+            letter-spacing: -0.01em;
+        }
+
+        .section-title-first {
+            margin-top: 0.2rem;
+        }
+
+        /* 响应式设计：平板 & 手机 */
+        @media (max-width: 768px) {
+            body {
+                padding: 0 12px;
+            }
+            .reading-card {
+                padding: 32px 24px;
+                margin: 20px auto 40px;
+                border-radius: 20px;
+            }
+            h1 {
+                font-size: 2.0rem;
+            }
+            .metadata {
+                font-size: 0.85rem;
+                gap: 4px 12px;
+            }
+            p {
+                font-size: 1.0rem;
+            }
+            blockquote {
+                padding-left: 1.2rem;
+                margin: 1.6rem 0;
+            }
+            blockquote p {
+                font-size: 1.0rem;
+            }
+            .section-title {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .reading-card {
+                padding: 24px 16px;
+                margin: 12px auto 30px;
+                border-radius: 16px;
+            }
+            h1 {
+                font-size: 1.7rem;
+            }
+            .metadata {
+                font-size: 0.8rem;
+                gap: 2px 8px;
+                flex-wrap: wrap;
+            }
+            p {
+                font-size: 0.98rem;
+                margin-bottom: 1.4rem;
+            }
+            blockquote {
+                padding-left: 1rem;
+                margin: 1.2rem 0;
+            }
+            .section-title {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* 返回顶部按钮 — 右下角，优雅圆形 */
+        #back-to-top {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 48px;
+            height: 48px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+            font-size: 1.8rem;
+            font-weight: 300;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.2s, background 0.1s;
+            opacity: 0;
+            pointer-events: none;
+            user-select: none;
+            line-height: 1;
+            z-index: 1000;
+            text-decoration: none;
+            padding: 0;
+            border: none;
+            outline: none;
+            background: #fcfcfc;
+            backdrop-filter: blur(2px);
+            border: 1px solid #eaeaea;
+        }
+
+        #back-to-top.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #back-to-top:hover {
+            background: #f2f2f2;
+            transform: scale(1.02);
+            border-color: #c0c0c0;
+        }
+
+        #back-to-top:active {
+            transform: scale(0.94);
+        }
+
+        /* 辅助样式：额外留白 */
+        hr {
+            display: none;
+        }
+
+        /* 让引用内部段落更紧凑 */
+        .reading-card blockquote p:last-of-type {
+            margin-bottom: 0;
+        }
+
+        /* 极简分割线（用于视觉分隔，不干扰语义） */
+        .divider-light {
+            height: 1px;
+            background: #ebebeb;
+            width: 100%;
+            margin: 2rem 0 1.8rem 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 阅读进度条 -->
+    <div id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+    <!-- 主要文章卡片 -->
+    <div class="reading-card">
+        <article>
+            <h1>《逆向投资心理学》</h1>
+
+            <!-- 元数据：作者、日期、阅读时间 -->
+            <div class="metadata">
+                <span>✍️ 汉诺·贝克</span>
+                <span class="divider">|</span>
+                <span>📅 2026年7月30日</span>
+                <span class="divider">|</span>
+                <span>⏳ 5分钟</span>
+            </div>
+
+            <!-- 正文开始 -->
+            <p>说白了，这本书就干一件事：把你脑子里那套“跟着大家走才安全”的本能，反过来用。</p>
+
+            <p>这本书的核心就是一句话——赚钱要靠跟大众反着来。别人抢着买的时候你该怕，别人吓得卖的时候你该贪。但注意啊，它不是教你当硬汉死扛，而是教你怎么看出来“大众现在疯过头了”，然后借着这股疯劲挣钱。全书最值钱的一句是：你不用消灭自己的情绪，而是要把大家的情绪当成天气预报来用——看见别人慌成啥样，就知道该穿雨衣还是该晒被子。</p>
+
+            <div class="section-title section-title-first">第一个事：为啥咱老是一买就跌、一卖就涨？因为“跟着走”是刻在骨子里的。</div>
+            <p>说白了就是，人天生是“跟屁虫”。</p>
+            <p>原始社会，你不跟着部落走，老虎就把你叼走了。所以“跟大家一样”这个本能，比你的理智老得多、快得多。到了股市里，你看见身边人都买某只股票，脑子里的警报器就自动关了，心想“这么多人都买了，能错吗？”——这就是盲从效应。</p>
+            <p>举个例子你就懂了：小区里新开两家饭馆，一家排队排到马路上，一家没人。你大概率去排队的，哪怕你不知道那家好不好吃。股票也一样，看见K线猛涨、群里到处晒收益，你手就痒了。</p>
+            <p>那集体疯狂是咋形成的？分三步：</p>
+            <p>“大家都买了” ——几个同事赚钱了，你心痒。</p>
+            <p>“不买就亏了” ——新闻天天报，隔壁老王赚了一辆车，你觉得不买就是傻子。</p>
+            <p>“泡沫破裂” ——最后一个跟风的人冲进去，没人接盘了，崩。</p>
+            <p>举个例子你就懂了：就像演唱会散场，所有人同时往出口挤，你被夹在中间根本动不了。你本来不想挤，但后面的人推着你走，最后踩踏发生了。股市暴跌时，卖的人越多，你越慌，跟着卖，正好卖在地板上。</p>
+            <p>再给你个狠例子：巴菲特为什么40多年不住华尔街，非住在奥马哈那个小城？因为他知道，离交易所太近，天天听见大家在吵什么，再理性的人也容易被带偏。他不看股价屏，看公司财报。</p>
+
+            <div class="section-title">第二个事：最坑人的四个心理大坑，每个都让你白送钱。</div>
+            <p><strong>坑一：</strong>亏100块的痛苦，比赚100块的快乐大两倍——这叫“损失厌恶”。</p>
+            <p>所以股票一亏你就舍不得卖，想着“回本就跑”；一赚你就赶紧跑，生怕再跌回去。结果呢？赚了5%就跑，亏了20%还死扛，长期下来赚小钱、亏大钱。</p>
+            <p>举个例子你就懂了：你捡到100块，高兴一会儿就忘了。但你要是丢了100块，能懊恼一整天。股市里，你被套住的感觉就像丢了钱，为了不“认赔”，你宁愿拿着垃圾股等奇迹。</p>
+            <p><strong>坑二：</strong>已经亏了的钱，你会拼命加仓，因为“不补仓就真亏了”——这叫“沉没成本”。</p>
+            <p>举个例子你就懂了：你花50块买了张电影票，看了20分钟烂得不行。理智告诉你该走，但你想“票都买了，忍忍吧”，结果多浪费两小时。股票也一样，跌了20%，你觉得“现在卖就真亏了”，于是补仓想摊平成本，结果越补越跌，从亏20%变成亏50%。</p>
+            <p><strong>坑三：</strong>你看见它曾经涨到过100块，现在跌到50块就觉得“便宜死了”——这叫“锚定效应”。</p>
+            <p>举个例子你就懂了：一件羽绒服标价2000，打完折1000，你觉得捡了大便宜。但你可能本来只穿单衣过冬，根本不需要羽绒服。股票从100跌到50，你觉得半价了，但它可能只值20块。你脑子里的“100块”就是那个锚，把你钉死了。</p>
+            <p><strong>坑四：</strong>买了某只股票后，你只看好消息，坏消息自动过滤——这叫“证实偏见”。</p>
+            <p>举个例子你就懂了：你喜欢一个汽车牌子，就会觉得它哪哪都好，别人说它费油，你心想“费点油咋了，安全啊”。股票也是，你买了它，看到利空新闻就想“这是假消息”，看到利好就兴奋“我果然没看错”。结果公司出问题了，你还蒙在鼓里。</p>
+
+            <div class="section-title">第三个事：两个你想都想不到的“心理暗器”。</div>
+            <p><strong>暗器一：</strong>同一件事，换个说法你就不一样了——这叫“框架效应”。</p>
+            <p>举个例子你就懂了：医生跟你说“手术成功率90%”，你马上同意；说“手术死亡率10%”，你可能就犹豫。其实一回事。股市里，你的股票亏了，如果心里想“这是浮亏，没卖就不算亏”，你就拿得住；一旦想“我真金白银亏了”，立马想割肉。语言直接操控你的判断。</p>
+            <p><strong>暗器二：</strong>你会把不同来源的钱区别对待——这叫“心理账户”。</p>
+            <p>举个例子你就懂了：工资卡里的钱，你省着花；但彩票中了5000块，你请客吃饭两天造光。其实都是你的钱。出租车司机最典型——下雨天生意好，他们反而早收工，因为觉得“今天钱赚够了”。但明明雨天单多，应该多跑两小时。股市里，你把“本金”和“赚来的钱”分开看，拿利润去赌高风险，输了不心疼，结果把利润全吐回去。</p>
+
+            <div class="section-title">第四个事：书中给的三条铁律，但诺贝尔奖得主自己都踩坑。</div>
+            <p>铁律三条：</p>
+            <p>趁早投资——时间越长，复利越吓人。</p>
+            <p>长期持有——别被每天涨跌吓出心脏病。</p>
+            <p>分散投资——别把所有鸡蛋放一个篮子。</p>
+            <p>举个例子你就懂了：诺贝尔经济学奖得主马克维茨（就是搞分散投资理论的那个），他自己咋配置的？一半买债券，一半买股票，没了。他都没完全按自己那套复杂模型来，因为他自己也怕亏，也扛不住波动。这说明啥？知道道理和做到，隔着一座喜马拉雅山。</p>
+
+            <p>最后，三句话记住，避开大部分坑：</p>
+            <blockquote>
+                <p>第一句：大家疯抢时，你摸摸钱包，别伸手；大家疯逃时，你睁大眼睛，找便宜货。</p>
+                <p>第二句：亏了别死扛，先问自己“如果我没买这个，现在会买吗？”——不会就果断卖。</p>
+                <p>第三句：忘了你买的价格，它跟现在值不值钱没关系。</p>
+            </blockquote>
+
+            <p>如果你只有10分钟，最值得做的一件事是：</p>
+            <p>把你的持仓清单拿出来，对着每只股票，假装你手里没有它，今天第一次看见这个价格，问自己一句——“如果我现在手里没这股，我会在今天这个价格买它吗？”</p>
+            <p>如果答案是“不会”，立刻卖掉，不管亏多少。如果答案是“会”，就留着。</p>
+            <p>就这么一个动作，能把你脑子里的“沉没成本”“锚定效应”“损失厌恶”全破掉。因为你在用“现在的眼光”看问题，而不是被“过去的成本”拴住。</p>
+
+            <p>最后补一句要命的忠告：</p>
+            <blockquote>
+                <p>逆向投资绝对不等于“跌了就买”。 跌了50%的股票，可能还有得跌。你要分清两件事：“真的便宜” 和 “只是跌了”。真的便宜，是公司赚钱能力没变，但大众因为恐慌把它砸了个坑，比如好饭店因为隔壁着火被连累关门一天，第二天还开门。只是跌了，是公司本身烂了，业绩年年亏，老板都在跑，那是垃圾堆里的臭鱼，再便宜也别捡。</p>
+                <p>怎么看？ 就看一个东西：它赚钱的能力变没变。如果它每年赚的钱没少，只是股价跌了，那才是逆向投资的机会；如果它赚的钱越来越少，股价跌再多也别碰——那不是便宜，那是价值毁灭。</p>
+            </blockquote>
+
+            <!-- 底部留白优雅收尾 -->
+            <div style="height: 8px;"></div>
+        </article>
+    </div>
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" aria-label="返回顶部">↑</button>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // DOM 元素
+            const progressBar = document.getElementById('progress-bar');
+            const backToTopBtn = document.getElementById('back-to-top');
+            const articleCard = document.querySelector('.reading-card');
+
+            // 获取页面滚动高度 & 文档总高度
+            function updateProgress() {
+                const scrollTop = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                if (docHeight > 0) {
+                    const progress = Math.min((scrollTop / docHeight) * 100, 100);
+                    progressBar.style.width = progress + '%';
+                    progressBar.setAttribute('aria-valuenow', Math.round(progress));
+                } else {
+                    progressBar.style.width = '0%';
+                }
+
+                // 控制返回顶部按钮显示 (滚动>80px 显示)
+                if (scrollTop > 80) {
+                    backToTopBtn.classList.add('visible');
+                } else {
+                    backToTopBtn.classList.remove('visible');
+                }
+            }
+
+            // 滚动监听 (使用 requestAnimationFrame 节流)
+            let ticking = false;
+            function onScroll() {
+                if (!ticking) {
+                    window.requestAnimationFrame(function() {
+                        updateProgress();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            }
+
+            // 返回顶部点击 (平滑)
+            function scrollToTop() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // 初始化监听
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', updateProgress, { passive: true });
+
+            // 按钮事件
+            backToTopBtn.addEventListener('click', scrollToTop);
+
+            // 页面加载完成后立即更新一次进度，确保初始状态正确
+            window.addEventListener('load', function() {
+                updateProgress();
+                // 保险：再次更新
+                setTimeout(updateProgress, 100);
+            });
+
+            // 额外：当字体或布局改变时重新计算 (无副作用)
+            // 若卡片高度变化，滚动进度依旧准确
+        })();
+    </script>
+
+</body>
+</html>
