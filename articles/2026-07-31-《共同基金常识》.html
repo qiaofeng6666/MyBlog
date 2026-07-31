@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>共同基金常识 · 沉浸阅读</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #faf9f7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #2c2c2c;
+            padding: 2rem 1.5rem 5rem;
+            line-height: 1.8;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 阅读进度条 */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.06);
+            z-index: 1000;
+            backdrop-filter: blur(2px);
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            width: 0%;
+            background: #1a1a1a;
+            transition: width 0.1s ease-out;
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* 主卡片 — 沉浸容器 */
+        .reading-card {
+            max-width: 780px;
+            width: 100%;
+            background: #ffffff;
+            padding: 2.8rem 3.2rem;
+            border-radius: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+            margin: 0.5rem auto 2rem;
+            transition: all 0.2s ease;
+            animation: fadeUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(24px);
+        }
+
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(24px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 文章标题 */
+        .article-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            text-align: center;
+            margin: 0 0 0.35rem 0;
+            line-height: 1.2;
+            color: #1e1e1e;
+        }
+
+        /* 元数据 */
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem 0.8rem;
+            font-size: 0.9rem;
+            color: #6b6b6b;
+            margin: 0.5rem 0 2rem 0;
+            letter-spacing: 0.01em;
+            border-bottom: 1px solid #f0efec;
+            padding-bottom: 1.6rem;
+        }
+
+        .meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .meta .sep {
+            color: #d0cdc8;
+            font-weight: 200;
+            font-size: 1rem;
+            padding: 0 0.1rem;
+        }
+
+        /* 正文排版 */
+        .content {
+            font-size: 1.1rem;
+            color: #2a2a2a;
+        }
+
+        .content p {
+            margin: 0 0 1.4rem 0;
+        }
+
+        .content h2 {
+            font-size: 1.6rem;
+            font-weight: 650;
+            margin: 2.2rem 0 0.8rem 0;
+            color: #1e1e1e;
+            letter-spacing: -0.01em;
+            border-left: 4px solid #d0ccc4;
+            padding-left: 1rem;
+        }
+
+        .content h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.8rem 0 0.6rem 0;
+            color: #252525;
+        }
+
+        .content blockquote {
+            margin: 1.8rem 0;
+            padding: 0.2rem 0 0.2rem 1.8rem;
+            border-left: 4px solid #d0ccc4;
+            color: #4a4a4a;
+            font-style: italic;
+            background: #f8f7f5;
+            border-radius: 0 12px 12px 0;
+            padding: 1rem 1.8rem 1rem 1.8rem;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .content blockquote p {
+            margin: 0.4rem 0;
+        }
+
+        .content hr {
+            border: none;
+            border-top: 1px solid #ecebe8;
+            margin: 2.2rem 0;
+        }
+
+        /* 小标签 / 人话 高亮 */
+        .label-human {
+            font-weight: 600;
+            color: #1e1e1e;
+            background: #f1efe9;
+            padding: 0.08rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-right: 0.3rem;
+        }
+
+        .content .highlight-box {
+            background: #f6f5f2;
+            padding: 0.2rem 0.8rem;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        /* 操作铁律 数字列表 */
+        .rule-list {
+            background: #f6f5f2;
+            padding: 1.6rem 2rem;
+            border-radius: 20px;
+            margin: 1.6rem 0;
+            list-style: none;
+            counter-reset: rule-counter;
+        }
+
+        .rule-list li {
+            counter-increment: rule-counter;
+            margin-bottom: 0.6rem;
+            padding-left: 2.2rem;
+            position: relative;
+            font-weight: 450;
+        }
+
+        .rule-list li::before {
+            content: counter(rule-counter) ".";
+            position: absolute;
+            left: 0;
+            font-weight: 600;
+            color: #1e1e1e;
+        }
+
+        .rule-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 响应式 */
+        @media (max-width: 680px) {
+            body {
+                padding: 1.2rem 1rem 4rem;
+            }
+            .reading-card {
+                padding: 1.8rem 1.5rem;
+                border-radius: 20px;
+            }
+            .article-title {
+                font-size: 2rem;
+            }
+            .content {
+                font-size: 1rem;
+            }
+            .meta {
+                font-size: 0.8rem;
+                gap: 0.3rem 0.5rem;
+                padding-bottom: 1.2rem;
+            }
+            .content blockquote {
+                padding: 0.8rem 1.2rem;
+                margin: 1.2rem 0;
+            }
+            .rule-list {
+                padding: 1.2rem 1.2rem;
+            }
+            .rule-list li {
+                padding-left: 1.8rem;
+            }
+        }
+
+        @media (max-width: 460px) {
+            .reading-card {
+                padding: 1.4rem 1rem;
+            }
+            .article-title {
+                font-size: 1.7rem;
+            }
+            .meta {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                font-size: 0.75rem;
+            }
+            .meta .sep {
+                display: none;
+            }
+            .meta span {
+                background: #f1efea;
+                padding: 0.1rem 0.6rem;
+                border-radius: 30px;
+            }
+            .content h2 {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* 返回顶部按钮 */
+        .back-to-top {
+            position: fixed;
+            bottom: 2.2rem;
+            right: 2rem;
+            width: 48px;
+            height: 48px;
+            border-radius: 60px;
+            background: #1e1e1e;
+            color: white;
+            border: none;
+            font-size: 1.6rem;
+            font-weight: 300;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.96);
+            backdrop-filter: blur(4px);
+            background: rgba(30, 30, 30, 0.9);
+            line-height: 1;
+            z-index: 999;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+        }
+
+        .back-to-top:hover {
+            background: #111111;
+            transform: scale(1.04);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15);
+        }
+
+        .back-to-top:active {
+            transform: scale(0.94);
+        }
+
+        /* 辅助 */
+        .mt-1 { margin-top: 1rem; }
+        .mb-0 { margin-bottom: 0; }
+    </style>
+</head>
+<body>
+
+    <!-- 进度条 -->
+    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <div class="fill" id="progressFill"></div>
+    </div>
+
+    <!-- 主文章卡片 -->
+    <article class="reading-card" id="readingCard">
+        <h1 class="article-title">《共同基金常识》</h1>
+        
+        <!-- 元数据 -->
+        <div class="meta">
+            <span>✍️ 约翰·博格</span>
+            <span class="sep">·</span>
+            <span>📅 2026年7月31日</span>
+            <span class="sep">·</span>
+            <span>⏳ 5分钟</span>
+        </div>
+
+        <div class="content">
+            <p style="font-size:1.2rem; font-weight:400; color:#2e2e2e; border-bottom:1px solid #efedea; padding-bottom:1.2rem;">
+                这本书其实就是一句话：<strong>买最便宜的大盘指数基金，然后一直拿着，啥也别动。</strong> 但大部分人做不到，因为总想折腾，结果越折腾钱越少。
+            </p>
+
+            <h2>这本书到底在讲啥？</h2>
+            <p>绝大多数人买基金赚不到钱，不是因为选错了基金，而是因为交了太多不该交的费用，并且总想高抛低吸结果做反了。最简单有效的方法就是：<strong>买一只管理费最低的宽基指数基金（比如沪深300），然后一直拿着，啥也别动。</strong></p>
+
+            <h2>“常识”到底指什么？四个真相</h2>
+
+            <h3>真相一：你赚的是经济成长的钱，不是隔壁老王的钱</h3>
+            <p><span class="label-human">人话：</span> 买基金赚钱，本质上是买整个国家最牛的那些公司，它们赚钱了分你一点。</p>
+            <p><strong>举个例子你就懂了：</strong> 过去100年美国股市年化回报大概9-10%，这就是“市场先生”发的基本工资。这钱来自企业赚钱和分红，不是你把别人口袋里的钱掏过来了。</p>
+
+            <h3>真相二：费用越低，你拿到手的越多——这是全书最核心的一句话</h3>
+            <p><span class="label-human">人话：</span> 市场给你发了10块钱工资，基金公司先扣走2块，你到手只剩8块。</p>
+            <p><strong>举个例子你就懂了：</strong> 两个基金同样赚了10%，一个收1%管理费你拿9%，另一个收2%你拿8%。看着就差1%对吧？30年后，前者比后者多出将近一倍的钱。 这就是复利的力量，也是博格用一辈子砸华尔街饭碗的原因——他把先锋集团的管理费压到了0.11%，行业平均是0.62%。</p>
+
+            <h3>真相三：短期波动是噪音，别被天气带偏</h3>
+            <p><span class="label-human">人话：</span> 股市每天涨涨跌跌，就像天气，但你要看的是气候。</p>
+            <p><strong>举个例子你就懂了：</strong> 你开餐馆，今天下雨客人少、明天晴天客人多，但决定你赚钱的是饭菜好不好吃，不是天气。股市也一样，短期波动是情绪，长期回报看的是企业赚不赚钱。</p>
+
+            <h3>真相四：没人能预测市场，说“我能”的人都是在骗你</h3>
+            <p><span class="label-human">人话：</span> 基金经理也不知道明天涨还是跌。</p>
+            <p><strong>举个例子你就懂了：</strong> 你见过哪个天气预报能100%准？股市比天气复杂一万倍。博格本人说过，他66年投资生涯里，从没见过谁能持续预测对。</p>
+
+            <h2>指数基金为什么是普通人的最优解？</h2>
+            <h3>主动基金跑不赢指数基金的三个原因</h3>
+            <p><span class="label-human">人话：</span> 基金经理帮你选股票，但他们的收费会把你的收益吃掉。</p>
+            <ul style="margin:0.8rem 0 1.4rem 1.8rem; list-style:disc; padding-left:0.4rem;">
+                <li><strong>原因一：</strong>管理费高——主动基金收1.5%甚至更高，指数基金只收0.1%-0.5%。</li>
+                <li><strong>原因二：</strong>交易手续费多——基金经理频繁买卖股票，每一次都有手续费，这些钱从你收益里扣。</li>
+                <li><strong>原因三：</strong>基金经理也是人——他们也会追涨杀跌，也会看走眼。</li>
+            </ul>
+            <p><strong>举个例子你就懂了：</strong> 同样投1万块、市场年化收益都是8%。主动基金扣完各种费用你拿到6%，指数基金扣完你拿到7.5%。30年后：主动基金到手5.7万，指数基金到手8.8万——差出一辆车的钱。</p>
+
+            <h3>巴菲特用十年赌约证明了这个事</h3>
+            <p>2008年，巴菲特打赌：标普500指数基金，10年收益一定跑赢对冲基金经理选的一堆基金。 结果呢？标普500涨了125.8%，对冲基金组合平均只涨了36.3%。</p>
+
+            <h2>为什么“高抛低吸”是最大的坑？</h2>
+            <p><span class="label-human">人话：</span> 你觉得自己能低买高卖，但现实是你永远在高点冲进去、低点割肉跑出来。</p>
+            <p><strong>举个例子你就懂了：</strong> 2007年和2015年牛市顶点，基金申购量最大——大家疯狂冲进去。熊市底部，赎回量最大——大家哭着卖出来。正好做反了。</p>
+            <p>不是你不聪明，是情绪在操控你。博格管这叫“人性永远不变”。而且基金公司赚的就是管理费，你频繁买卖他们还高兴（手续费多），所以他们不会拦着你。</p>
+
+            <h2>书中给出的操作铁律</h2>
+            <p><span class="label-human">人话：</span> 四条规矩，照着做就行。</p>
+            <ol class="rule-list">
+                <li><strong>长期持有，至少10年起。</strong> 因为短期涨跌谁也说不准，但10年以上股市几乎都是涨的。</li>
+                <li><strong>买宽基指数基金，不要买行业基金、主题基金。</strong> 就买沪深300（A股规模最大、流动性最好的300家公司）或标普500这种，覆盖各行各业，一个行业垮了还有别的撑着。</li>
+                <li><strong>选管理费最低的那个。</strong> 同类里谁便宜选谁。</li>
+                <li><strong>买完了别管它。</strong> 不用看盘、不用调仓、不用听专家分析。每年看一次就行。</li>
+            </ol>
+
+            <h2>驳斥几个常见误解</h2>
+            <h3>误解1：“我可以选到好基金经理”</h3>
+            <p><span class="label-human">人话：</span> 历史业绩不代表未来。<br> <strong>举个例子你就懂了：</strong> 十年前的冠军基金经理，现在大半都不在前十了。就像去年的高考状元，今年不一定还能考第一。</p>
+            <h3>误解2：“现在太高了，等跌了再买”</h3>
+            <p><span class="label-human">人话：</span> 你永远等不到“合适的时机”。<br> <strong>举个例子你就懂了：</strong> 2015年觉得5000点太高，等跌到3000点再买，结果真跌到3000点了你又觉得还会跌到2000点，结果它涨到4000点了你还在等。没人知道底在哪。</p>
+            <h3>误解3：“我是新手，先拿小钱试试”</h3>
+            <p><span class="label-human">人话：</span> 试可以，但试的不是“选哪个基金”。<br> <strong>举个例子你就懂了：</strong> 你真正需要练的，是能不能管住自己不动。拿小钱试没问题，但别把钱分散在七八个基金里然后每天看哪个涨得好——那叫瞎折腾。</p>
+            <h3>误解4：“买了很多只基金叫分散”</h3>
+            <p><span class="label-human">人话：</span> 如果全是股票基金，跌的时候一起跌。<br> <strong>举个例子你就懂了：</strong> 你买了10只股票基金，觉得分散了，结果熊市一来全在跌。真正的分散是股票+债券搭配，不过博格的核心建议是：新手就先买一只宽基指数，别整那么复杂。</p>
+
+            <hr>
+
+            <h2 style="border-left-color:#b0a89c;">结尾：记住这三件事</h2>
+            <p><strong>第一，</strong>买费用最低的宽基指数基金（比如沪深300）。<br>
+            <strong>第二，</strong>一直拿着，至少10年。<br>
+            <strong>第三，</strong>别管它，别看盘，别听专家忽悠。</p>
+            <p style="background:#f0eeea; padding:0.8rem 1.4rem; border-radius:30px; font-weight:500;">能做到这三条，你已经赢了90%的投资者。</p>
+
+            <h2>如果我只想花10分钟应用这本书，最值得做的一件事是什么？</h2>
+            <p>打开支付宝或天天基金，搜索“沪深300ETF联接”或“沪深300指数基金”，选一个“管理费率”最低的（0.15%左右，别超过0.5%），买入一笔钱（一次性或每月定投都行）。买完之后，把App删了，一年后再回来看。记住，这10分钟的操作，决定了你未来10年的收益——比你花100小时研究哪个基金经理厉害有用得多。</p>
+
+            <blockquote>
+                <p><strong>约翰·博格最想告诉普通人的忠告：</strong></p>
+                <p>“别去试图寻找什么英雄基金经理，投资的真相是：成本越低，你留下的钱越多。整个行业都在想办法从你身上赚钱，而你要做的，就是拒绝交这笔智商税。”</p>
+            </blockquote>
+
+            <p style="color:#6b6b6b; font-size:0.9rem; margin-top:2.4rem; border-top:1px solid #efedea; padding-top:1.6rem; text-align:center;">— 常识，往往是最容易被忽略的智慧 —</p>
+        </div>
+    </article>
+
+    <!-- 返回顶部按钮 -->
+    <button class="back-to-top" id="backToTopBtn" aria-label="返回顶部">↑</button>
+
+    <script>
+        (function() {
+            // 进度条
+            const progressFill = document.getElementById('progressFill');
+            const backBtn = document.getElementById('backToTopBtn');
+
+            // 更新进度条
+            function updateProgress() {
+                const scrollTop = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+                progressFill.style.width = Math.min(progress, 100) + '%';
+                // 更新 aria-valuenow
+                const bar = progressFill.parentElement;
+                bar.setAttribute('aria-valuenow', Math.round(Math.min(progress, 100)));
+            }
+
+            // 返回顶部按钮可见性
+            function toggleBackButton() {
+                const scrollY = window.scrollY;
+                if (scrollY > 150) {
+                    backBtn.classList.add('visible');
+                } else {
+                    backBtn.classList.remove('visible');
+                }
+            }
+
+            // 滚动监听 (被动)
+            function onScroll() {
+                updateProgress();
+                toggleBackButton();
+            }
+
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', updateProgress, { passive: true });
+
+            // 返回顶部点击
+            backBtn.addEventListener('click', function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // 初始状态
+            updateProgress();
+            toggleBackButton();
+
+            // 稍后确保卡片加载动画完成后再调整一次 (防止布局偏移)
+            setTimeout(() => {
+                updateProgress();
+            }, 200);
+
+            // 如果有 hash 锚点跳转，也更新进度
+            window.addEventListener('load', function() {
+                updateProgress();
+                toggleBackButton();
+            });
+        })();
+    </script>
+</body>
+</html>
