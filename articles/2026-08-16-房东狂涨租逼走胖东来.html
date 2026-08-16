@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>胖东来关店 · 深度阅读</title>
+    <style>
+        /* ── 全局重置 & 基础 ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f7f5f2;
+            color: #1e1e1e;
+            line-height: 1.8;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ── 阅读进度条 ── */
+        #reading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: #c0392b;
+            z-index: 1000;
+            transition: width 0.1s ease-out;
+            box-shadow: 0 1px 4px rgba(192, 57, 43, 0.25);
+        }
+
+        /* ── 主卡片（内容容器） ── */
+        .container {
+            max-width: 780px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 3.5rem 3.8rem;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+            animation: fadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── 文章标题 ── */
+        .article-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: -0.02em;
+            line-height: 1.25;
+            color: #1a1a1a;
+            margin-bottom: 0.75rem;
+        }
+
+        /* ── 元数据 ── */
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem 1.2rem;
+            font-size: 0.95rem;
+            color: #6b6b6b;
+            margin-top: 0.25rem;
+            margin-bottom: 2.2rem;
+            padding-bottom: 1.6rem;
+            border-bottom: 1px solid #eeebe7;
+        }
+
+        .meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .meta-divider {
+            color: #d0ccc6;
+            font-weight: 300;
+        }
+
+        /* ── 正文排版 ── */
+        article {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #2a2a2a;
+        }
+
+        article p {
+            margin-bottom: 1.5rem;
+        }
+
+        article h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-top: 2.8rem;
+            margin-bottom: 1rem;
+            line-height: 1.35;
+            color: #1a1a1a;
+            letter-spacing: -0.01em;
+        }
+
+        article h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-top: 1.8rem;
+            margin-bottom: 0.6rem;
+            color: #1a1a1a;
+        }
+
+        /* ── 引用 blockquote ── */
+        article blockquote {
+            margin: 1.8rem 0 2rem 0;
+            padding: 0.6rem 0 0.6rem 1.6rem;
+            border-left: 4px solid #d0c6bc;
+            background: #faf8f6;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: #555;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        article blockquote p {
+            margin-bottom: 0.4rem;
+        }
+
+        article blockquote p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* ── 表格 ── */
+        .table-wrap {
+            overflow-x: auto;
+            margin: 2rem 0 2.2rem 0;
+            border-radius: 12px;
+            border: 1px solid #eeebe7;
+            background: #fcfbf9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            min-width: 500px;
+        }
+
+        table thead {
+            background: #f2efe9;
+        }
+
+        table th {
+            font-weight: 700;
+            padding: 0.9rem 1.2rem;
+            text-align: left;
+            color: #1a1a1a;
+            border-bottom: 2px solid #e0dad3;
+        }
+
+        table td {
+            padding: 0.9rem 1.2rem;
+            border-bottom: 1px solid #eeebe7;
+            vertical-align: top;
+            color: #2d2d2d;
+        }
+
+        table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        table td:first-child {
+            font-weight: 600;
+            color: #1a1a1a;
+            white-space: nowrap;
+        }
+
+        /* ── 列表 ── */
+        article ul,
+        article ol {
+            padding-left: 1.6rem;
+            margin-bottom: 1.5rem;
+        }
+
+        article li {
+            margin-bottom: 0.6rem;
+        }
+
+        /* ── 突出格言 ── */
+        .aphorism {
+            background: #f4f1ed;
+            padding: 1.2rem 2rem;
+            border-radius: 12px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            text-align: center;
+            color: #1e1e1e;
+            margin: 2rem 0 2.2rem 0;
+            letter-spacing: 0.02em;
+            border: 1px solid #e5dfd8;
+        }
+
+        .aphorism span {
+            color: #c0392b;
+        }
+
+        /* ── 返回顶部按钮 ── */
+        #back-to-top {
+            position: fixed;
+            bottom: 2.2rem;
+            right: 2.2rem;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 1px solid #e0dcd6;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            font-size: 1.6rem;
+            font-weight: 300;
+            line-height: 1;
+            color: #2d2d2d;
+            cursor: pointer;
+            transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s;
+            opacity: 0;
+            transform: scale(0.85);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            z-index: 999;
+        }
+
+        #back-to-top.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        #back-to-top:hover {
+            background: #f4f1ed;
+            border-color: #c9c2b8;
+            transform: scale(1.04);
+        }
+
+        #back-to-top:active {
+            transform: scale(0.94);
+        }
+
+        /* ── 响应式 ── */
+        @media (max-width: 820px) {
+            .container {
+                padding: 2.2rem 1.8rem;
+                border-radius: 16px;
+            }
+
+            .article-title {
+                font-size: 2rem;
+            }
+
+            article {
+                font-size: 1.05rem;
+            }
+
+            article h2 {
+                font-size: 1.4rem;
+                margin-top: 2.2rem;
+            }
+
+            .meta {
+                font-size: 0.88rem;
+                gap: 0.3rem 0.9rem;
+            }
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 1rem 0.6rem;
+            }
+
+            .container {
+                padding: 1.6rem 1.2rem;
+                border-radius: 12px;
+            }
+
+            .article-title {
+                font-size: 1.6rem;
+            }
+
+            article {
+                font-size: 1rem;
+            }
+
+            article h2 {
+                font-size: 1.25rem;
+                margin-top: 1.8rem;
+            }
+
+            article h3 {
+                font-size: 1.08rem;
+            }
+
+            .meta {
+                font-size: 0.8rem;
+                gap: 0.2rem 0.6rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .meta-divider {
+                display: none;
+            }
+
+            article blockquote {
+                padding-left: 1rem;
+                font-size: 0.98rem;
+            }
+
+            .aphorism {
+                font-size: 1rem;
+                padding: 1rem 1.2rem;
+            }
+
+            #back-to-top {
+                bottom: 1.2rem;
+                right: 1.2rem;
+                width: 42px;
+                height: 42px;
+                font-size: 1.4rem;
+            }
+
+            table {
+                font-size: 0.85rem;
+                min-width: 400px;
+            }
+
+            table th,
+            table td {
+                padding: 0.6rem 0.8rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .container {
+                padding: 1.2rem 0.8rem;
+            }
+
+            .article-title {
+                font-size: 1.4rem;
+            }
+
+            article {
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── 阅读进度条 ─── -->
+    <div id="reading-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+    <!-- ─── 主内容 ─── -->
+    <div class="container" role="main">
+
+        <article>
+
+            <!-- 标题 -->
+            <h1 class="article-title">房东狂涨租逼走胖东来：<br />两次“金母鸡飞走”背后的前因后果</h1>
+
+            <!-- 元数据 -->
+            <div class="meta">
+                <span class="meta-item">✍️ 商业观察</span>
+                <span class="meta-divider">·</span>
+                <span class="meta-item">📅 2026年8月16日</span>
+                <span class="meta-divider">·</span>
+                <span class="meta-item">⏳ 8分钟</span>
+            </div>
+
+            <!-- ─── 正文 ─── -->
+
+            <!-- 一、2026年，24年老店宣布关闭 -->
+            <h2>一、2026年，24年老店宣布关闭</h2>
+
+            <p><strong>2026年8月7日</strong>，胖东来创始人于东来在一场直播中宣布：已经运营24年的许昌胖东来生活广场，租约到期后将于<strong>2026年12月底永久闭店</strong>，不再续租。</p>
+
+            <p>消息一出，舆论哗然。这家店是胖东来的首家大型综合商场，营业面积达2.3万平方米，年销售额约20亿元、年利润超1亿元——就这样一家“印钞机”级别的门店，说关就关。</p>
+
+            <p>8月9日，于东来在个人社交账号发文，还原了关店的完整逻辑：</p>
+
+            <blockquote>
+                <p>2015年左右，许昌生活广场项目因负责人员未按公司规定操作，租约合同未统一签订，最终导致个别租户租金涨到“无法想象的地步”，远远脱离了公平。</p>
+            </blockquote>
+
+            <p>原来，这座商场产权分散在几十位小房东手里。2015年签约时，经办人没有按照公司规定统一签约，而是与这些小业主零散签约——租期长短不一、涨幅没有统一上限。这个失误埋下了长达十余年的隐患。</p>
+
+            <p>少数房东眼见胖东来生意火爆，便趁机大幅抬价。其中一份公开的租赁协议显示，某区域原租金为每年120万元，约定每年上浮3%。但个别房东提出的租金标准，已经“远远脱离公平区间”。</p>
+
+            <blockquote>
+                <p>于东来坦言：“其实这几户占比并不大，但无论钱多钱少，失去公平正义的底线，始终是我的心结。因此合同到期后，尽管生活广场年销售20亿、年利润超1亿，但信仰和开心永远是第一位的。”</p>
+            </blockquote>
+
+            <p>周边一家旅馆店主的话道出了问题的本质：</p>
+
+            <blockquote>
+                <p>“因为他（超市）赚钱房东才给涨房租，像我们周围不赚钱的，房东也没涨。”——房东是根据商户的经营收益来调整租金的，胖东来太赚钱了，赚到房东觉得“应该分一杯羹”。</p>
+            </blockquote>
+
+            <!-- 二、2015年，同样的剧本上演过一次 -->
+            <h2>二、2015年，同样的剧本上演过一次</h2>
+
+            <p>这并非胖东来第一次被租金逼到墙角。</p>
+
+            <p><strong>2015年</strong>，胖东来新乡“大胖”店租约到期，房东靖业集团直接将年租金从800多万元暴涨至2400万元，涨幅高达三倍。</p>
+
+            <p>那家店当年年利润达六七千万元。面对如此“狮子大开口”，于东来连价都没还，直接选择撤场。他后来说：</p>
+
+            <blockquote>
+                <p>“我想都没想直接放弃……这都是因为信仰，公平、自由，这是我的原则。”</p>
+            </blockquote>
+
+            <p>当时新乡市民涌上街头挽留，相关部门出面协调，均未能改变结局。</p>
+
+            <p>后来的故事令人唏嘘：胖东来撤场后，原址接盘商家惨淡经营数年最终倒闭，周边小店没了客流也跟着一家家关门，整片商圈冷清至今。有周边居民回忆：</p>
+
+            <blockquote>
+                <p>“当年那一带人山人海，因为胖东来的辐射连带周围商铺也生意兴隆，自胖东来搬走后逐渐冷清，现在门可罗雀。”</p>
+            </blockquote>
+
+            <p>更讽刺的是，胖东来退出后，年租金从2400万元一路降到200万元都没人要。房东当年算的是多赚1600万的账，最终赔进去的，是整条街数十年积聚的人气和商业价值。</p>
+
+            <!-- 三、两次事件的相似之处 -->
+            <h2>三、两次事件的相似之处</h2>
+
+            <p>把2015年和2026年两次事件放在一起看，惊人地相似：</p>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>2015年 新乡大胖店</th>
+                            <th>2026年 许昌生活广场</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>导火索</td>
+                            <td>房东将租金从800万涨到2400万</td>
+                            <td>个别房东租金“涨到无法想象的地步”</td>
+                        </tr>
+                        <tr>
+                            <td>门店利润</td>
+                            <td>年利润六七千万</td>
+                            <td>年利润超1亿、年销售20亿</td>
+                        </tr>
+                        <tr>
+                            <td>于东来的反应</td>
+                            <td>“我想都没想直接放弃”</td>
+                            <td>“信仰和开心永远是第一位的”</td>
+                        </tr>
+                        <tr>
+                            <td>后续</td>
+                            <td>商圈衰落，门可罗雀</td>
+                            <td>待观察</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p>核心逻辑一模一样：房东看到租户生意好，便大幅涨租，赌对方“舍不得走” 。但他们赌错了人——在于东来看来，1亿利润可以随时舍弃，但被房东要挟是原则问题，不是钱的问题。</p>
+
+            <p>有评论一针见血：</p>
+
+            <blockquote>
+                <p>“房东却误将品牌红利当成地段价值，直接将年租金从800万暴涨至2400万。”——这句话放在2026年的许昌，同样适用。</p>
+            </blockquote>
+
+            <!-- 四、提前离场的建议 -->
+            <h2>四、提前离场的建议：如果你是不想涨租的小房东</h2>
+
+            <p>在这场博弈中，最无辜的是那些从未参与涨租、安分守己的小房东。少数房东的贪婪，代价却要所有人共同承担——胖东来一走，整栋楼的租金价值都将断崖式下跌。</p>
+
+            <p>如果你是这样的房东，该如何自保？</p>
+
+            <h3>第一，认清时间窗口。</h3>
+            <p>于东来8月7日官宣关店，但早在6月份，市场上就已经有相关传闻。6月是消息“在半明半暗之间”——只有嗅觉最灵敏的人在悄悄行动，多数买家还被蒙在鼓里，价格依然坚挺。8月是消息“人尽皆知”——恐慌情绪蔓延，想高价出手就难了。知道消息的人越少，筹码就越值钱。</p>
+
+            <h3>第二，利用“人声鼎沸”出货。</h3>
+            <p>当其他小房东正在狂热地“抱团涨价”时，他们反而会成为你最好的“抬轿子”的人——他们会拍着胸脯跟外部买家说：“胖东来生意这么好，我们集体涨租，它肯定得认！”他们为了证明自己涨价的“合理性”，会主动把饼画得更大。利用他们制造的涨价舆论，作为你卖房的“最佳佐证”。</p>
+
+            <h3>第三，寻找“外部接盘侠”。</h3>
+            <p>不要卖给精于算计的邻居，要卖给被新闻热度冲昏头脑的外部投资者。挂牌文案可以突出：“胖东来黄金铺位，周边业主集体看涨，未来租金即将翻倍！”定价策略是：比“涨价后的预期租金”便宜一点，但比“现状”贵很多——让买家觉得捡了便宜。</p>
+
+            <h3>第四，静默操作，快速成交。</h3>
+            <p>千万别在业主群里提卖房的事——一旦提了，其他房东会认为你是“叛徒”或“逃兵”，会拼命压你价或搞破坏。静悄悄挂牌，在官宣前的几个月内完成交易。只要钱到账，后面邻居们是死是活，跟你再无关系。</p>
+
+            <h3>第五，在“无人问津”时等着捡漏。</h3>
+            <p>等胖东来如期关店，周边铺子价格暴跌，你可以揣着卖房所得现金，用白菜价把当初别人不肯卖给你的那间铺子买回来。等未来新的商业体（比如胖东来投资65亿的“梦之城”）崛起，再卖一次。</p>
+
+            <div class="aphorism">
+                <span>买在无人问津，卖在人声鼎沸</span> —— 这是投资界颠扑不破的真理。在这场博弈中，清醒的人不是那个被套牢的韭菜，而是那个在赌场里趁大家狂欢时悄悄把筹码换成现金、站在门口等着收尸的赢家。
+            </div>
+
+            <!-- 五、结语 -->
+            <h2>五、结语</h2>
+
+            <p>胖东来两次被租金逼走，暴露了中国实体商业一个普遍困境：“商户养熟商圈，房东借机收割”的短视问题。涨房租本是市场经济的正常调节手段，但毫无节制的见利忘义，最终只会酿成双输局面。</p>
+
+            <p>胖东来或许早已想清了这一点。投资65亿元、全自有资金、不贷款的“梦之城”正在许昌东城区拔地而起，涵盖百货、超市、影院、酒店等全业态，预计2029年开业。此前，胖东来已斥资近2亿元买下新乡大胖的物业，又自建了时代广场。</p>
+
+            <p><strong>从租客到房东，从受制于人到掌握物业权——这是一条被逼出来的转型路径。</strong></p>
+
+            <p>但这套操作，只有胖东来这样的企业能走得通。那些拿不出几十亿自建物业的品牌，那些安分守己的小房东，那些依附于胖东来客流生存的小商户——他们才是这场博弈中最脆弱的人。</p>
+
+            <p>透支一个优秀品牌，损耗的不只是一家企业的信心，更可能影响一座城市的商业生态。而这，才是这件事真正<strong>“关我们所有人事”</strong>的地方。</p>
+
+        </article>
+
+    </div>
+
+    <!-- ─── 返回顶部按钮 ─── -->
+    <button id="back-to-top" aria-label="返回顶部">↑</button>
+
+    <!-- ─── JavaScript ─── -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ── 元素引用 ──
+            const progressBar = document.getElementById('reading-progress');
+            const backBtn = document.getElementById('back-to-top');
+
+            // ── 阅读进度 ──
+            function updateProgress() {
+                const scrollTop = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+                progressBar.style.width = progress + '%';
+                progressBar.setAttribute('aria-valuenow', Math.round(progress));
+            }
+
+            // ── 返回顶部按钮显隐 ──
+            function toggleBackButton() {
+                const scrollTop = window.scrollY;
+                if (scrollTop > 180) {
+                    backBtn.classList.add('visible');
+                } else {
+                    backBtn.classList.remove('visible');
+                }
+            }
+
+            // ── 返回顶部点击 ──
+            backBtn.addEventListener('click', function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // ── 滚动监听（合并处理） ──
+            let ticking = false;
+            function onScroll() {
+                if (!ticking) {
+                    window.requestAnimationFrame(function() {
+                        updateProgress();
+                        toggleBackButton();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            }
+
+            window.addEventListener('scroll', onScroll);
+
+            // ── 初始状态 ──
+            // 页面加载完成后立即计算一次，确保进度条和按钮状态正确
+            window.addEventListener('load', function() {
+                updateProgress();
+                toggleBackButton();
+            });
+
+            // 也监听 resize，防止内容高度变化影响进度计算
+            window.addEventListener('resize', updateProgress);
+
+        })();
+    </script>
+
+</body>
+</html>
