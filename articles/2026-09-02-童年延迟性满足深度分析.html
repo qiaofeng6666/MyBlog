@@ -342,7 +342,7 @@
             <span class="sep">｜</span>
             <span>📅 2026年9月2日</span>
             <span class="sep">｜</span>
-            <span>⏳ <span id="reading-time">计算中…</span></span>
+            <span>⏳ 14 分钟</span></span>
         </div>
 
         <!-- ===== 正文 ===== -->
@@ -775,24 +775,7 @@
             void container.offsetWidth;
             container.classList.add('visible');
 
-            // ---------- 2. 阅读时长计算 ----------
-            const bodyContent = document.getElementById('article-body');
-            const textContent = bodyContent.textContent || '';
-            // 统计中文字符 + 英文单词（粗略估算）
-            const chineseChars = (textContent.match(/[\u4e00-\u9fa5]/g) || []).length;
-            const englishWords = (textContent.match(/[a-zA-Z]+/g) || []).length;
-            // 数字、标点等按1个字符算，粗略估计总字数 ≈ 中文字符数 + 英文单词数
-            const totalWords = chineseChars + englishWords;
-            const readingSpeed = 300; // 字/分钟
-            let minutes = Math.ceil(totalWords / readingSpeed);
-            if (minutes < 1) minutes = 1;
-
-            const timeEl = document.getElementById('reading-time');
-            if (timeEl) {
-                timeEl.textContent = minutes + ' 分钟';
-            }
-
-            // ---------- 3. 阅读进度条 ----------
+            // ---------- 2. 阅读进度条 ----------
             const progressBar = document.getElementById('progress-bar');
 
             function updateProgress() {
@@ -823,7 +806,7 @@
             // 初始计算
             updateProgress();
 
-            // ---------- 4. 返回顶部按钮 ----------
+            // ---------- 3. 返回顶部按钮 ----------
             const backBtn = document.getElementById('back-to-top');
 
             function toggleBackBtn() {
@@ -849,7 +832,7 @@
             // 初始状态
             toggleBackBtn();
 
-            // ---------- 5. 额外：页面加载完成后确保进度条准确 ----------
+            // ---------- 4. 额外：页面加载完成后确保进度条准确 ----------
             window.addEventListener('load', function() {
                 updateProgress();
                 toggleBackBtn();
