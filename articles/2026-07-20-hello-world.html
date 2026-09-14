@@ -3,48 +3,287 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello World，我的第一篇博客</title>
-    <link rel="stylesheet" href="../style.css" />  <!-- 复用首页样式 -->
+    <title>Hello World · 博客</title>
+
+    <!-- ============================================================
+    CSS 样式
+    ============================================================ -->
     <style>
-        /* 文章页专用样式：让内容区更宽，适合阅读 */
-        .post-content {
+        /* ----- 全局重置 & 基础 ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #faf9f8;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem 1rem;
+        }
+
+        /* ----- 阅读进度条（fixed 顶部） ----- */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: #2c2c2c;
+            z-index: 9999;
+            width: 0%;
+            transition: width 0.1s ease;
+            /* 平滑变化 */
+        }
+
+        /* ----- 卡片容器（带入场动画） ----- */
+        .card {
             max-width: 720px;
-            margin: 0 auto;
-            padding: 20px 0;
+            width: 100%;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            padding: 2rem 2.5rem;
+            border-radius: 8px;
+
+            /* 入场动画：从下往上 + 淡入 */
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
         }
-        .post-content h2 {
-            font-size: 2rem;
-            margin-bottom: 10px;
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .post-content img {
-            max-width: 100%;
-            border-radius: 12px;
+
+        /* ----- 文章标题 ----- */
+        .article-title {
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: #2c2c2c;
         }
-        .back-link {
-            display: inline-block;
-            margin-top: 30px;
-            color: #0066cc;
-            text-decoration: none;
+
+        /* ----- 元数据（作者 · 日期 · 阅读时长） ----- */
+        .meta {
+            font-size: 0.9rem;
+            color: #6b6b6b;
+            text-align: center;
+            letter-spacing: 0.5px;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #efefef;
+            margin-bottom: 2rem;
+        }
+
+        /* ----- 正文区域 ----- */
+        .article-body p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            color: #2c2c2c;
+        }
+
+        /* ----- 引用块（blockquote） ----- */
+        .article-body blockquote {
+            margin-left: 0;
+            padding-left: 1.5rem;
+            border-left: 4px solid #dcdcdc;
+            color: #5a5a5a;
+            font-style: italic;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            /* 与段落间距一致 */;
+        }
+
+        .article-body blockquote p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #5a5a5a;
+            font-style: italic;
+        }
+
+        .article-body blockquote p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* ----- 返回顶部按钮（右下角） ----- */
+        #back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #2c2c2c;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            /* 默认隐藏 */
+            transition: opacity 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 9998;
+            user-select: none;
+        }
+
+        #back-to-top.visible {
+            opacity: 1;
+        }
+
+        #back-to-top:hover {
+            background: #1a1a1a;
+        }
+
+        /* ----- 响应式（移动端 ≤ 768px） ----- */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+
+            .card {
+                padding: 1rem 1.2rem;
+            }
+
+            .article-title {
+                font-size: 1.8rem;
+            }
+
+            .article-body p,
+            .article-body blockquote,
+            .article-body blockquote p {
+                font-size: 1rem;
+            }
+
+            #back-to-top {
+                bottom: 1rem;
+                right: 1rem;
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
+
 <body>
-    <div class="post-content">
-        <h2>Hello World，我的第一篇博客</h2>
+
+    <!-- ============================================================
+    HTML 结构
+    ============================================================ -->
+
+    <!-- 1. 阅读进度条 -->
+    <div id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+    <!-- 2. 卡片容器 -->
+    <main class="card" role="main">
+
+        <!-- 文章标题 -->
+        <h1 class="article-title">Hello World</h1>
+
+        <!-- 元数据：作者 · 日期 · 阅读时长 -->
         <div class="meta">
-            <span class="author">✍️ 博主</span>
-            <span class="date">📅 2026-07-20</span>
+            ✍️ 博主 ｜ 📅 2026-07-20 ｜ ⏳ <span id="reading-time">1</span> 分钟
         </div>
-        <div class="tags">
-            <span class="tag">#生活</span>
-            <span class="tag">#随想</span>
+
+        <!-- 正文内容 -->
+        <div class="article-body">
+            <blockquote>
+                <p>终于，我拥有了属于自己的博客网站。</p>
+                <p>虽然过程简单，但迈出第一步总是值得记录的。</p>
+            </blockquote>
         </div>
-        <hr />
-        <!-- 正文内容从这里开始 -->
-        <p>终于，我拥有了属于自己的博客网站。</p>
-        <p>虽然过程简单，但迈出第一步总是值得记录的。</p>
-        <!-- 更多内容... -->
-        <a href="../index.html" class="back-link">← 返回首页</a>
-    </div>
+
+    </main>
+
+    <!-- 3. 返回顶部按钮 -->
+    <button id="back-to-top" aria-label="返回顶部">↑</button>
+
+    <!-- ============================================================
+    JavaScript 交互逻辑
+    ============================================================ -->
+    <script>
+        // ============================================================
+        // 1. 阅读时长自动计算（基于正文字数）
+        //    规则：平均 300 字 / 分钟，不足 1 分钟显示 "1 分钟"
+        // ============================================================
+        (function calculateReadingTime() {
+            var bodyEl = document.querySelector('.article-body');
+            // 获取正文所有文本（包括 blockquote 中的文字）
+            var text = bodyEl.textContent || bodyEl.innerText || '';
+            // 统计中文字符数（匹配 CJK 汉字）
+            var chineseChars = text.match(/[\u4e00-\u9fa5]/g) || [];
+            var wordCount = chineseChars.length;
+            // 计算分钟数，向上取整，最少为 1
+            var minutes = Math.max(1, Math.ceil(wordCount / 300));
+            document.getElementById('reading-time').textContent = minutes;
+        })();
+
+        // ============================================================
+        // 2. 阅读进度条（随滚动动态更新宽度）
+        // ============================================================
+        (function initProgressBar() {
+            var progressBar = document.getElementById('progress-bar');
+
+            function updateProgress() {
+                var scrollTop = window.scrollY;
+                var docHeight = document.body.scrollHeight - window.innerHeight;
+                if (docHeight > 0) {
+                    var progress = (scrollTop / docHeight) * 100;
+                    progressBar.style.width = progress + '%';
+                    progressBar.setAttribute('aria-valuenow', Math.round(progress));
+                } else {
+                    progressBar.style.width = '0%';
+                    progressBar.setAttribute('aria-valuenow', 0);
+                }
+            }
+
+            // 监听滚动 & 窗口大小变化（保证准确）
+            window.addEventListener('scroll', updateProgress);
+            window.addEventListener('resize', updateProgress);
+            // 初始更新
+            updateProgress();
+        })();
+
+        // ============================================================
+        // 3. 返回顶部按钮（滚动 > 300px 渐显，点击平滑滚动至顶部）
+        // ============================================================
+        (function initBackToTop() {
+            var btn = document.getElementById('back-to-top');
+
+            function toggleButton() {
+                if (window.scrollY > 300) {
+                    btn.classList.add('visible');
+                } else {
+                    btn.classList.remove('visible');
+                }
+            }
+
+            window.addEventListener('scroll', toggleButton);
+            window.addEventListener('resize', toggleButton);
+            // 初始状态
+            toggleButton();
+
+            // 点击平滑滚动到顶部
+            btn.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        })();
+    </script>
+
 </body>
 </html>

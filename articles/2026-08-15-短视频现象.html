@@ -1,750 +1,476 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>屏幕内外 · 沉浸阅读</title>
-    <style>
-        /* ========== 基础重置 & 全局变量 ========== */
-        *,
-        *::before,
-        *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --bg-body: #f7f5f0;
-            --bg-card: #ffffff;
-            --text-primary: #1e1e1e;
-            --text-secondary: #3a3a3a;
-            --text-muted: #6b6b6b;
-            --text-quote: #5a5a5a;
-            --border-light: #e8e3dc;
-            --accent-border: #c9bdb0;
-            --progress-color: #b8a99a;
-            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.04);
-            --radius-card: 20px;
-            --max-width: 780px;
-            --font-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            --font-serif: "Georgia", "Times New Roman", serif;
-            --transition-smooth: 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        html {
-            scroll-behavior: smooth;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        body {
-            font-family: var(--font-base);
-            background: var(--bg-body);
-            color: var(--text-primary);
-            line-height: 1.8;
-            font-size: 1.1rem;
-            padding: 0 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* ========== 阅读进度条 ========== */
-        #progress-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: transparent;
-            z-index: 9999;
-            pointer-events: none;
-        }
-
-        #progress-bar .bar-fill {
-            height: 100%;
-            width: 0%;
-            background: var(--progress-color);
-            transition: width 0.12s ease-out;
-            border-radius: 0 2px 2px 0;
-            box-shadow: 0 0 6px rgba(184, 169, 154, 0.25);
-        }
-
-        /* ========== 卡片容器 ========== */
-        .reading-card {
-            max-width: var(--max-width);
-            width: 100%;
-            background: var(--bg-card);
-            border-radius: var(--radius-card);
-            box-shadow: var(--shadow-card);
-            padding: 56px 64px 64px;
-            margin: 40px auto 60px;
-            position: relative;
-            animation: fadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(28px);
-        }
-
-        @keyframes fadeUp {
-            0% {
-                opacity: 0;
-                transform: translateY(28px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ========== 文章头部 ========== */
-        .article-header {
-            text-align: center;
-            margin-bottom: 2.2rem;
-            padding-bottom: 1.8rem;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .article-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            line-height: 1.2;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .article-meta {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 0.4rem 1rem;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-top: 0.75rem;
-        }
-
-        .article-meta .meta-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .article-meta .sep {
-            color: var(--border-light);
-            font-weight: 300;
-            user-select: none;
-        }
-
-        /* ========== 正文排版 ========== */
-        .article-body {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: var(--text-secondary);
-        }
-
-        .article-body h2 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-top: 2.8rem;
-            margin-bottom: 0.6rem;
-            color: var(--text-primary);
-            letter-spacing: -0.01em;
-            line-height: 1.3;
-        }
-
-        .article-body h2:first-of-type {
-            margin-top: 0.2rem;
-        }
-
-        .article-body h3 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-top: 2rem;
-            margin-bottom: 0.4rem;
-            color: var(--text-primary);
-            letter-spacing: -0.01em;
-            line-height: 1.4;
-        }
-
-        .article-body p {
-            margin-bottom: 1.2rem;
-            word-break: break-word;
-        }
-
-        .article-body strong {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .article-body em {
-            font-style: italic;
-            color: var(--text-muted);
-        }
-
-        /* ========== 引用块 ========== */
-        .article-body blockquote {
-            margin: 1.6rem 0 1.8rem;
-            padding: 0.8rem 0 0.8rem 1.6rem;
-            border-left: 4px solid var(--accent-border);
-            background: rgba(0, 0, 0, 0.012);
-            border-radius: 0 6px 6px 0;
-            font-style: italic;
-            color: var(--text-quote);
-            font-size: 1.05rem;
-            line-height: 1.7;
-        }
-
-        .article-body blockquote p {
-            margin-bottom: 0.2rem;
-        }
-
-        .article-body blockquote p:last-child {
-            margin-bottom: 0;
-        }
-
-        .article-body blockquote .source {
-            display: block;
-            margin-top: 0.4rem;
-            font-style: normal;
-            font-size: 0.92rem;
-            color: var(--text-muted);
-        }
-
-        /* ========== 列表 ========== */
-        .article-body ul,
-        .article-body ol {
-            margin: 0.6rem 0 1.4rem 1.6rem;
-            padding-left: 0.4rem;
-        }
-
-        .article-body li {
-            margin-bottom: 0.4rem;
-            padding-left: 0.2rem;
-        }
-
-        .article-body ul li::marker {
-            color: var(--accent-border);
-        }
-
-        /* ========== 数字 / 数据 高亮 ========== */
-        .data-highlight {
-            font-weight: 600;
-            color: var(--text-primary);
-            background: linear-gradient(to right, rgba(184, 169, 154, 0.12), rgba(184, 169, 154, 0.04));
-            padding: 0 4px;
-            border-radius: 4px;
-        }
-
-        /* ========== 结语重点 ========== */
-        .closing-emphasis {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            text-align: center;
-            margin-top: 2.2rem;
-            padding-top: 1.8rem;
-            border-top: 1px solid var(--border-light);
-            letter-spacing: 0.01em;
-            line-height: 1.6;
-        }
-
-        .three-questions {
-            background: rgba(0, 0, 0, 0.018);
-            border-radius: 12px;
-            padding: 1.4rem 1.8rem;
-            margin: 1.6rem 0 0.6rem;
-            font-size: 1.05rem;
-            line-height: 1.9;
-        }
-
-        .three-questions p {
-            margin-bottom: 0.2rem;
-        }
-
-        .three-questions p:last-child {
-            margin-bottom: 0;
-        }
-
-        .three-questions .q {
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        /* ========== 返回顶部按钮 ========== */
-        #back-top {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: var(--bg-card);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-light);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-            font-size: 1.6rem;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: opacity 0.3s ease, transform 0.25s ease, box-shadow 0.25s ease;
-            opacity: 0;
-            transform: translateY(12px);
-            pointer-events: none;
-            z-index: 999;
-            font-weight: 300;
-            user-select: none;
-        }
-
-        #back-top.visible {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
-
-        #back-top:hover {
-            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10);
-            transform: translateY(-2px);
-            border-color: var(--accent-border);
-        }
-
-        #back-top:active {
-            transform: scale(0.94);
-        }
-
-        /* ========== 响应式 ========== */
-        @media (max-width: 768px) {
-            body {
-                padding: 0 14px;
-            }
-
-            .reading-card {
-                padding: 32px 24px 40px;
-                margin: 24px auto 40px;
-                border-radius: 16px;
-            }
-
-            .article-title {
-                font-size: 1.9rem;
-            }
-
-            .article-body {
-                font-size: 1.02rem;
-                line-height: 1.75;
-            }
-
-            .article-body h2 {
-                font-size: 1.45rem;
-                margin-top: 2.2rem;
-            }
-
-            .article-body h3 {
-                font-size: 1.15rem;
-                margin-top: 1.6rem;
-            }
-
-            .article-meta {
-                font-size: 0.82rem;
-                gap: 0.2rem 0.6rem;
-            }
-
-            .article-meta .sep {
-                display: none;
-            }
-
-            .article-meta .meta-item {
-                background: rgba(0, 0, 0, 0.03);
-                padding: 0.1rem 0.6rem;
-                border-radius: 20px;
-            }
-
-            .article-body blockquote {
-                padding: 0.6rem 0 0.6rem 1.2rem;
-                font-size: 0.98rem;
-                margin: 1.2rem 0 1.4rem;
-            }
-
-            .three-questions {
-                padding: 1rem 1.2rem;
-                font-size: 0.98rem;
-            }
-
-            .closing-emphasis {
-                font-size: 1.05rem;
-            }
-
-            #back-top {
-                bottom: 20px;
-                right: 20px;
-                width: 44px;
-                height: 44px;
-                font-size: 1.4rem;
-            }
-
-            #progress-bar {
-                height: 2.5px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .reading-card {
-                padding: 24px 18px 32px;
-                margin: 16px auto 30px;
-                border-radius: 14px;
-            }
-
-            .article-title {
-                font-size: 1.6rem;
-            }
-
-            .article-body {
-                font-size: 0.98rem;
-                line-height: 1.72;
-            }
-
-            .article-body h2 {
-                font-size: 1.3rem;
-                margin-top: 1.8rem;
-            }
-
-            .article-body h3 {
-                font-size: 1.08rem;
-                margin-top: 1.4rem;
-            }
-
-            .article-meta .meta-item {
-                font-size: 0.75rem;
-                padding: 0.05rem 0.5rem;
-            }
-
-            .article-body blockquote {
-                padding: 0.5rem 0 0.5rem 1rem;
-                font-size: 0.92rem;
-                margin: 1rem 0 1.2rem;
-                border-left-width: 3px;
-            }
-
-            .article-body ul,
-            .article-body ol {
-                margin-left: 1.2rem;
-            }
-
-            .three-questions {
-                padding: 0.8rem 1rem;
-                font-size: 0.92rem;
-            }
-
-            .closing-emphasis {
-                font-size: 0.98rem;
-            }
-
-            #back-top {
-                bottom: 16px;
-                right: 16px;
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
-            }
-        }
-
-        @media (min-width: 1200px) {
-            .reading-card {
-                padding: 64px 72px 72px;
-                margin: 48px auto 72px;
-            }
-
-            .article-title {
-                font-size: 2.8rem;
-            }
-
-            .article-body {
-                font-size: 1.15rem;
-            }
-        }
-
-        /* ========== 工具类 ========== */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            border: 0;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屏幕内外：短视频时代的真相与自救指南</title>
+
+<style>
+/* ============================================================
+   CSS 区块
+   ============================================================ */
+
+/* ---------- 基础重置与页面背景 ---------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #faf9f8;          /* 米白背景 */
+  color: #2c2c2c;                     /* 主文字色 */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", "PingFang SC", "Hiragino Sans GB",
+               "Microsoft YaHei", sans-serif;
+  padding: 2.5rem 1rem;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- 阅读进度条（页面最顶部固定） ---------- */
+#progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: #2c2c2c;
+  z-index: 9999;
+  transition: width 0.08s linear;
+}
+
+/* ---------- 卡片容器 + 入场动画 ---------- */
+.card {
+  max-width: 720px;
+  margin: 0 auto;
+  background: #ffffff;                          /* 纯白卡片 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);   /* 轻微阴影 */
+  padding: 2rem 2.5rem;
+  animation: fadeInUp 0.6s ease-out both;       /* 入场：上移淡入 */
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- 标题 ---------- */
+h1 {
+  font-weight: 700;
+  font-size: 2.5rem;
+  line-height: 1.3;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+}
+
+/* ---------- 元数据（标题正下方） ---------- */
+.meta {
+  font-size: 0.9rem;
+  color: #6b6b6b;
+  text-align: center;
+  letter-spacing: 0.5px;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #efefef;
+  margin-bottom: 2rem;
+}
+
+/* ---------- 正文排版 ---------- */
+.article-body p {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", "PingFang SC", "Hiragino Sans GB",
+               "Microsoft YaHei", sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;      /* 段落之间间隔 1.5rem */
+  color: #2c2c2c;
+}
+
+/* 二级标题（章节） */
+.article-body h2 {
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-top: 3rem;
+  margin-bottom: 1.2rem;
+  padding-left: 0.9rem;
+  border-left: 4px solid #2c2c2c;
+  color: #2c2c2c;
+}
+
+/* 三级标题（小节） */
+.article-body h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.6;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: #2c2c2c;
+}
+
+/* 加粗强调 */
+.article-body strong {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* 引用块 */
+.article-body blockquote {
+  margin-left: 0;
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+  border-left: 4px solid #dcdcdc;
+  color: #5a5a5a;
+  font-style: italic;
+}
+
+.article-body blockquote p {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  margin-bottom: 0.6rem;
+  color: #5a5a5a;
+  font-style: italic;
+}
+
+.article-body blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* 分隔线 */
+.divider {
+  border: none;
+  border-top: 1px solid #efefef;
+  margin: 2.5rem 0 1.5rem;
+}
+
+/* 文末说明 */
+.note {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: #6b6b6b;
+}
+
+.note strong {
+  color: #4a4a4a;
+}
+
+/* ---------- 返回顶部按钮 ---------- */
+#backToTop {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: #2c2c2c;
+  color: #ffffff;
+  font-size: 1.15rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 9998;
+  opacity: 0;                 /* 默认隐藏，滚动 > 300px 后渐显 */
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+#backToTop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#backToTop:hover {
+  transform: translateY(-2px);
+}
+
+/* ---------- 响应式规则 ---------- */
+@media (max-width: 768px) {
+  body {
+    padding: 0;
+  }
+
+  .card {
+    max-width: 100%;
+    padding: 1rem 1.2rem;      /* 移动端内边距缩减 */
+    box-shadow: none;
+  }
+
+  h1 {
+    font-size: 1.8rem;         /* 标题字号缩小 */
+    text-align: left;
+  }
+
+  .meta {
+    text-align: left;
+  }
+
+  .article-body p {
+    font-size: 1rem;           /* 正文字号缩小 */
+  }
+
+  .article-body h2 {
+    font-size: 1.3rem;
+    margin-top: 2.2rem;
+  }
+
+  .article-body h3 {
+    font-size: 1.08rem;
+  }
+
+  #backToTop {
+    bottom: 1.2rem;
+    right: 1.2rem;
+  }
+}
+</style>
 </head>
+
 <body>
 
-    <!-- ====== 阅读进度条 ====== -->
-    <div id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="阅读进度">
-        <div class="bar-fill" id="progressFill"></div>
-    </div>
+<!-- ============================================================
+     HTML 区块
+     ============================================================ -->
 
-    <!-- ====== 返回顶部按钮 ====== -->
-    <button id="back-top" aria-label="返回顶部">↑</button>
+<!-- 阅读进度条 -->
+<div id="progress-bar"></div>
 
-    <!-- ====== 主卡片 ====== -->
-    <main class="reading-card" role="main">
+<!-- 文章卡片容器 -->
+<main class="card">
 
-        <!-- 文章头部 -->
-        <header class="article-header">
-            <h1 class="article-title">屏幕内外：短视频时代的真相与自救指南</h1>
-            <div class="article-meta">
-                <span class="meta-item">✍️ 社会观察</span>
-                <span class="sep">·</span>
-                <span class="meta-item">📅 2026年8月15日</span>
-                <span class="sep">·</span>
-                <span class="meta-item">⏳ 12分钟</span>
-            </div>
-        </header>
+  <!-- 文章标题 -->
+  <h1>屏幕内外：<br>短视频时代的真相与自救指南</h1>
 
-        <!-- 文章正文 -->
-        <div class="article-body">
+  <!-- 元数据 -->
+  <div class="meta">
+    ✍️ 博主 ｜ 📅 2026年8月15日 ｜ ⏳ <span id="read-time">17分钟</span>
+  </div>
 
-            <!-- ====== 一、一个全民"浸泡"的时代 ====== -->
-            <h2>一、一个全民"浸泡"的时代</h2>
+  <!-- 正文 -->
+  <article class="article-body" id="article-body">
 
-            <p>你有多久没有完整地读完一本书了？上一次安安静静地发半小时呆，是什么时候？</p>
+    <h2>一、一个全民“浸泡”的时代</h2>
 
-            <p>这不是矫情，而是我们正在经历的现实。《中国网络视听发展研究报告（2026）》显示，我国短视频用户已达 <strong>10.74亿人</strong>，行业规模 <strong>1.29万亿元</strong>。短视频活跃渗透率高达 <strong>92.6%</strong>，网民平均每人每天刷视频超过 <strong>200分钟</strong>。换句话说，<strong>每天醒着的时间里，我们有超过十分之一交给了算法推送的"上下滑"</strong>。</p>
+    <p>你有多久没有完整地读完一本书了？上一次安安静静地发半小时呆，是什么时候？</p>
 
-            <p>但 <strong>10.74亿</strong> 不只是一个数字——它是我们每个人的父母、子女、朋友，是你和我。我们正集体沉浸在一场前所未有的注意力实验中，而实验的结果，正在悄然重塑我们的心智、关系与社会的根基。</p>
+    <p>这不是矫情，而是我们正在经历的现实。据《中国网络视听发展研究报告（2026）》，我国短视频用户已达10.74亿人，短视频活跃渗透率高达92.6%；网络视听行业市场规模达1.29万亿元。用户人均单日使用时长超过200分钟。换句话说，如果按每天清醒16小时计算，我们超过五分之一的时间交给了算法推送的“上下滑”。</p>
 
-            <p>那么，短视频到底对我们做了什么？那些看似无害的"刷刷刷"背后，究竟隐藏着什么？</p>
+    <p>但10.74亿不只是一个数字——它是我们每个人的父母、子女、朋友，是你和我。我们正集体沉浸在一场前所未有的注意力实验中，而实验的结果，正在悄然重塑我们的心智、关系与社会的根基。</p>
 
-            <!-- ====== 二、表象：我们以为自己在看什么 ====== -->
-            <h2>二、表象：我们以为自己在看什么</h2>
+    <p>那么，短视频到底对我们做了什么？那些看似无害的“刷刷刷”背后，究竟隐藏着什么？</p>
 
-            <p>打开任何一款短视频App，你看到的可能是这些：</p>
+    <h2>二、表象：我们以为自己在看什么</h2>
 
-            <p><strong>"小时候想要玩具，家长不给买，长大了自己买了一墙手办。"</strong> 一条AI生成的怀旧视频，点赞百万。评论区里，无数人写下了自己的童年遗憾——那个没买到的玩具、那场被取消的旅行、那句从未听到的"我爱你"。</p>
+    <p>打开任何一款短视频App，你看到的可能是这些：</p>
 
-            <p><strong>"9.9元解锁全集。"</strong> 一部微短剧看到第10集，突然弹出付费提示。微短剧人均日使用时长已达 <strong>129分钟</strong>，市场规模2025年预计突破 <strong>600亿元</strong>。许多不熟悉手机操作的中老年人，在不知不觉中完成了多次扣费。</p>
+    <p>“小时候想要玩具，家长不给买，长大了自己买了一墙手办。”一条AI生成的怀旧视频，点赞百万。评论区里，无数人写下了自己的童年遗憾——那个没买到的玩具、那场被取消的旅行、那句从未听到的“我爱你”。这是情绪被批量生产、批量消费的典型场景。</p>
 
-            <p><strong>"上海老伯捡拾名包后向失主勒索5万元。"</strong> 一条"新闻"引发全网热议。然而，这是刘某明为提升自己奢侈品回收店知名度，伙同员工和演员 <strong>精心摆拍的虚假视频</strong>。</p>
+    <p>“9.9元解锁全集。”一部微短剧看到第10集，突然弹出付费提示。据行业报告，微短剧人均日使用时长已达129分钟，2025年市场规模预计突破600亿元。许多不熟悉手机操作的中老年人，在不知不觉中完成了多次扣费。这是消费主义与诱导付费的合谋。</p>
 
-            <p><strong>炫富短视频里，"00后全款拿下保时捷""月入十万的副业"。</strong> 这些内容以"沉浸式记录生活"为外衣，将消费行为与"品质生活""成功人生"绑定。</p>
+    <p>“上海老伯捡拾名包后向失主勒索5万元。”一条“新闻”引发全网热议。然而，据警方通报，这是刘某明为提升自己奢侈品回收店知名度，伙同员工和演员精心摆拍的虚假视频。这是信息污染的冰山一角。</p>
 
-            <p><strong>孩子们熟悉喜爱的《小猪佩奇》，配音却被篡改成暴力与低俗的语言</strong>。<strong>"10秒教会你制作可发射的狙击枪"</strong> ——视频详细演示如何用签字笔组装成武器。北京市网信办一次专项整治，就清理了近 <strong>百万条</strong> 涉未成年人违法违规短视频。</p>
+    <p>炫富短视频里，“00后全款拿下保时捷”“月入十万的副业”。这些内容以“沉浸式记录生活”为外衣，将消费行为与“品质生活”“成功人生”绑定。这是消费主义对成功学的重新包装。</p>
 
-            <p>这些，就是我们每天滑动屏幕时"投喂"的内容。它们看起来五花八门，但剥开表层，背后运行的是一套精密的系统。</p>
+    <p>孩子们熟悉喜爱的《小猪佩奇》，配音却被篡改成暴力与低俗的语言。“10秒教会你制作可发射的狙击枪”——视频详细演示如何用签字笔组装成武器。据北京市网信办通报，一次专项整治就清理了近百万条涉未成年人违法违规短视频。</p>
 
-            <!-- ====== 三、本质：五重"看不见的手" ====== -->
-            <h2>三、本质：五重"看不见的手"</h2>
+    <p>这些，就是我们每天滑动屏幕时“投喂”的内容。它们看起来五花八门，但剥开表层，背后运行的是一套精密的系统：用情绪换停留，用停留换流量，用流量换收益。</p>
 
-            <!-- 第一重 -->
-            <h3>第一重：流量经济——情绪是唯一的产品</h3>
+    <h2>三、本质：五重“看不见的手”</h2>
 
-            <p>短视频平台的推荐算法，不问是非，只问一个指标：<strong>这条内容能触发多强的用户情绪</strong>？停留时长、点赞、评论、分享——你每多停留一秒，平台就多一份收益。于是，内容生产的逻辑变成了：<strong>什么最能激怒你、感动你、焦虑你，什么就最容易被推到你面前</strong>。</p>
+    <h3>第一重：流量经济——情绪是流量货币</h3>
 
-            <p>"信息茧房"的效应由此产生。算法不是简单地推荐你喜欢的内容，而是推荐 <strong>最能让你停留的内容</strong>——哪怕那内容是愤怒、是焦虑、是对立。清华大学新闻学院教授张铮指出，存在一类 "<strong>清醒自缚者</strong>"——算法素养很高，但认知已经固化。他们知道自己在被算法喂养，却已经走不出来了。</p>
+    <p>商业短视频平台的推荐算法通常不直接判断“真/假/好/坏”，而是围绕停留时长、完播、点赞、评论、转发等指标做优化。越能激发强烈情绪的内容，越容易获得这些指标；于是愤怒、焦虑、感动、怀旧被批量生产，情绪成了最高效的流量货币。</p>
 
-            <!-- 第二重 -->
-            <h3>第二重：消费主义——把"治愈"变成账单</h3>
+    <p>“信息茧房”的效应由此产生。算法不是简单地推荐你喜欢的内容，而是推荐最能让你停留的内容——哪怕那内容是愤怒、是焦虑、是对立。清华大学新闻学院教授张铮指出，存在一类“清醒自缚者”——算法素养很高，但认知已经固化。他们知道自己在被算法喂养，却已经走不出来了。</p>
 
-            <p>"爱自己"这个美好的概念，正在被简化为"为自己花钱"。</p>
+    <h3>第二重：消费主义——把“治愈”变成账单</h3>
 
-            <p>炫富短视频以"沉浸式体验"为包装，让受众在不知不觉中接受"高消费=成功"的异化逻辑。算法则精准捕捉注意力，持续推送同类内容，构筑起严密的消费主义"信息茧房"。</p>
+    <p>“爱自己”这个美好的概念，正在被简化为“为自己花钱”。</p>
 
-            <p>于是我们买下了那一墙手办，却发现快感只持续了三天。我们以为自己缺的是一个物件，真正匮乏的是 <strong>物件背后依附的情感——被看见、被理解、被允许</strong>。消费主义卖给你的从来不是商品，而是"治愈"的幻觉。而真正的治愈，从来无法通过扫码支付完成。</p>
+    <p>炫富短视频以“沉浸式体验”为包装，让受众在不知不觉中接受“高消费=成功”的异化逻辑。算法则精准捕捉注意力，持续推送同类内容，构筑起严密的消费主义“信息茧房”。</p>
 
-            <!-- 第三重 -->
-            <h3>第三重：算法操控——你以为是你在刷，其实是它在刷你</h3>
+    <p>于是我们买下了那一墙手办，却发现快感只持续了三天。我们以为自己缺的是一个物件，真正匮乏的是物件背后依附的情感——被看见、被理解、被允许。消费主义卖给你的从来不是商品，而是“治愈”的幻觉。而真正的治愈，从来无法通过扫码支付完成。</p>
 
-            <p>2024年，牛津大学出版社的年度词汇是 <strong>"Brain rot"（脑腐）</strong> ——一种"精神亚健康"状态：<strong>记忆力像金鱼，思维像马赛克</strong>。</p>
+    <h3>第三重：算法与神经心理机制——你以为是你在刷，其实是它在训练你</h3>
 
-            <p>这不仅是比喻。一项发表于 <em>NeuroImage</em> 的研究首次揭示：<strong>短视频成瘾不仅会改变人类大脑结构，还牵动小脑区域多达521个基因异常表达</strong>。大脑正在主动"重塑"结构，以适应不断刷短视频带来的强烈感官刺激与即时反馈。<strong>在成瘾者的大脑里，已经上演了一场"分子级别的暴风雨"</strong>。</p>
+    <p>2024年，牛津大学出版社的年度词汇是“Brain rot”（脑腐）——一种“精神亚健康”状态：记忆力像金鱼，思维像马赛克。</p>
 
-            <p>更令人警惕的是，清华大学的研究团队发现，短视频成瘾与抑郁症状之间存在动态互促关系——<strong>不仅"越刷越抑郁"，而且"悲伤情绪"正是连接成瘾与抑郁的核心桥梁</strong>。许多人在面对负面情绪时本能地打开短视频来转移注意力，但这种调节方式 <strong>反而会不断强化负面状态，把人困在情绪泥潭中难以自拔</strong>。</p>
+    <p>这不仅是比喻。一项发表于NeuroImage的研究发现，问题性短视频使用与小脑区域521个基因表达异常存在关联。需要强调的是，这仍是相关性研究，不能简单理解为“刷视频直接改变基因”。但它提醒我们：大脑正在被高强度、即时反馈的感官刺激重新训练。</p>
 
-            <p>而一项涵盖 <strong>16项研究、15821名个体</strong> 的元分析进一步证实：<strong>问题性短视频使用与抑郁（β=0.321）和焦虑（β=0.406）均呈显著正相关</strong>。</p>
+    <p>更令人警惕的是，清华大学研究团队的相关研究提示，短视频成瘾与抑郁症状之间存在动态互促关系——不仅“越刷越抑郁”，而且“悲伤情绪”可能是连接成瘾与抑郁的核心桥梁。许多人在面对负面情绪时本能地打开短视频来转移注意力，但这种调节方式反而可能不断强化负面状态，把人困在情绪泥潭中难以自拔。</p>
 
-            <p><strong>你以为是你在刷短视频，其实是短视频在刷你的大脑。</strong></p>
+    <p>一项涵盖16项研究、15821名个体的元分析进一步显示：问题性短视频使用与抑郁（β=0.321）和焦虑（β=0.406）均呈显著正相关。当然，这是相关性证据，不是简单因果。但足够说明：你以为是你在刷短视频，其实你的注意力、情绪和节奏，正在被一套以停留为目标的系统重新训练。</p>
 
-            <!-- 第四重 -->
-            <h3>第四重：社会撕裂——被算法放大的对立</h3>
+    <h3>第四重：社会撕裂——被算法放大的对立</h3>
 
-            <p>"婆媳矛盾""性别对立""代际冲突"——这些话题的短视频播放量往往高得惊人。为什么？因为 <strong>对立产生情绪，情绪产生流量</strong>。</p>
+    <p>“婆媳矛盾”“性别对立”“代际冲突”——这些话题的短视频播放量往往高得惊人。为什么？因为对立产生情绪，情绪产生流量。</p>
 
-            <p>"清朗·整治恶意挑动负面情绪问题"专项行动明确指出，要着力整治 <strong>挑动群体极端对立情绪</strong> 等问题。AI怀旧视频则将复杂的亲子关系粗暴简化成"不给买=不爱"，把代际差异固化为"受害者叙事"。<strong>越是对立，越是流量；越是流量，越是对立</strong>。一个恶性循环就此形成。</p>
+    <p>“清朗·整治恶意挑动负面情绪问题”专项行动明确指出，要着力整治挑动群体极端对立情绪等问题。AI怀旧视频则将复杂的亲子关系粗暴简化成“不给买=不爱”，把代际差异固化为“受害者叙事”。越是对立，越是流量；越是流量，越是对立。一个恶性循环就此形成。</p>
 
-            <!-- 第五重 -->
-            <h3>第五重：信息污染——当真相变成可选项</h3>
+    <h3>第五重：信息污染——当真相变成可选项</h3>
 
-            <p>AI让造假变得前所未有的容易。公安部公布的典型案例中，有人用AI生成"女儿走失"的虚假信息博取关注，有人用AI生成"地震废墟"的虚假视频。2025年9月1日起，《人工智能生成合成内容标识办法》正式施行，要求所有AI生成内容强制添加标识。但在那之前，大量的虚假内容已经完成了传播和收割。</p>
+    <p>AI让造假变得前所未有的容易。公安部公布的典型案例中，有人用AI生成“女儿走失”的虚假信息博取关注，有人用AI生成“地震废墟”的虚假视频。自2025年9月1日起，《人工智能生成合成内容标识办法》正式施行，要求所有AI生成内容强制添加标识。但在那之前，大量虚假内容已经完成了传播和收割。</p>
 
-            <p>更隐蔽的危害是"<strong>数字泔水</strong>"——AI批量生成的、逻辑混乱的低质内容泛滥成灾，挤占了优质内容的生存空间，污染了整个信息生态。</p>
+    <p>更隐蔽的危害是“数字泔水”——AI批量生成的、逻辑混乱的低质内容泛滥成灾，挤占了优质内容的生存空间，污染了整个信息生态。</p>
 
-            <!-- ====== 四、代价：我们正在失去什么 ====== -->
-            <h2>四、代价：我们正在失去什么</h2>
+    <h2>四、代价：我们正在失去什么</h2>
 
-            <p>当这五重力量同时作用，代价正在各个层面显现：</p>
+    <p>当这五重力量同时作用，代价正在各个层面显现：</p>
 
-            <p><strong>对个人</strong>：注意力碎片化、深度思考能力退化、情绪被外部操控、消费冲动被精准激发、焦虑和抑郁风险上升。</p>
+    <p><strong>对个人：</strong>注意力碎片化、深度思考能力退化、情绪被外部操控、消费冲动被精准激发、焦虑和抑郁风险上升。</p>
 
-            <p><strong>对家庭</strong>：代际鸿沟被算法刻意放大。老年人沉迷"AI乖孙"视频，年轻人则被推送"原生家庭有毒"的内容。<strong>理解被对立取代，对话被指责取代</strong>。</p>
+    <p><strong>对家庭：</strong>代际鸿沟被算法刻意放大。老年人沉迷“AI乖孙”视频，年轻人则被推送“原生家庭有毒”的内容。理解被对立取代，对话被指责取代。</p>
 
-            <p><strong>对社会</strong>："信息茧房"让不同群体活在平行宇宙里；虚假信息和谣言撕裂社会信任；炫富短视频销蚀奋斗精神和主流价值观。</p>
+    <p><strong>对社会：</strong>“信息茧房”让不同群体活在平行宇宙里；虚假信息和谣言撕裂社会信任；炫富短视频销蚀奋斗精神和主流价值观。</p>
 
-            <p><strong>对下一代</strong>：近百万条不良短视频被清理的背后，是无数已经被扭曲的三观。<strong>当孩子刷到的不是《小猪佩奇》而是暴力配音版，不是科普知识而是"10秒造枪"教程，他们的精神世界正在被悄悄"投毒"</strong>。</p>
+    <p><strong>对下一代：</strong>近百万条不良短视频被清理的背后，是未成年人精神世界正在被“投毒”的风险。当孩子刷到的不是《小猪佩奇》而是暴力配音版，不是科普知识而是“10秒造枪”教程，他们的三观正在被悄悄扭曲。</p>
 
-            <!-- ====== 五、怎么办：给每一个刷短视频的人 ====== -->
-            <h2>五、怎么办：给每一个刷短视频的人</h2>
+    <p><strong>对公共文化：</strong>深度内容被短平快挤压，劣币驱逐良币，严肃讨论和公共理性的空间被不断压缩。</p>
 
-            <p>面对这场规模空前的注意力争夺战，个体并非束手无策。以下是几条可操作的建议：</p>
+    <h2>五、怎么办：给每一个刷短视频的人，也给平台与社会</h2>
 
-            <!-- 建议1 -->
-            <h3>1. 建立"观看纪律"</h3>
+    <p>面对这场规模空前的注意力争夺战，个体并非束手无策。但自救之外，也需要平台、监管、学校和家庭共同承担责任。</p>
 
-            <p><strong>设定时间边界。</strong> 就像规划饮食一样规划你的屏幕时间。每天给自己设定一个刷短视频的"配额"——比如30分钟。使用手机自带的时间管理功能或第三方App来辅助执行。</p>
+    <h3>1. 建立“观看纪律”</h3>
 
-            <p><strong>主动搜索，而非被动接收。</strong> 关掉"推荐"页，直接搜索你真正想看的内容。<strong>从"被投喂"转变为"主动觅食"</strong>，是打破算法控制的第一步。</p>
+    <p><strong>设定时间边界。</strong>就像规划饮食一样规划你的屏幕时间。每天给自己设定一个刷短视频的“配额”——比如30分钟。使用手机自带的时间管理功能或第三方App来辅助执行。睡前把手机放在另一个房间，用物理隔离替代意志力。</p>
 
-            <!-- 建议2 -->
-            <h3>2. 培养"算法素养"</h3>
+    <p><strong>主动搜索，而非被动接收。</strong>关掉“推荐”页，直接搜索你真正想看的内容。从“被投喂”转变为“主动觅食”，是打破算法控制的第一步。</p>
 
-            <p>理解算法的运作逻辑：它推荐的不是"真相"或"价值"，而是"能让你停留最久的内容"。<strong>学会识别情绪操控</strong>——当你感到愤怒、焦虑、被冒犯时，问自己一句：<strong>"这条内容是想告诉我真相，还是想让我停留？"</strong></p>
+    <h3>2. 培养“算法素养”</h3>
 
-            <p>清华大学等高校的学者呼吁，公共教育和讨论在提升算法认知中至关重要。了解算法，才能不被算法控制。</p>
+    <p>理解算法的运作逻辑：它推荐的不是“真相”或“价值”，而是“能让你停留最久的内容”。学会识别情绪操控——当你感到愤怒、焦虑、被冒犯时，问自己三个问题：</p>
 
-            <!-- 建议3 -->
-            <h3>3. 警惕消费主义的"情感包装"</h3>
+    <blockquote>
+      <p>“这条内容想让我产生什么情绪？”</p>
+      <p>“它想让我停留多久？”</p>
+      <p>“它有没有给出可核实的来源？”</p>
+    </blockquote>
 
-            <p>当一条短视频让你产生"买了这个我就治愈了"的冲动时，停下来想一想：<strong>我真正需要的是什么？</strong> 是那个物件本身，还是被看见、被认可、被爱的感觉？如果是后者，扫码支付解决不了问题。消费主义最擅长的，就是把情感需求包装成商品。</p>
+    <p>清华大学等高校的学者呼吁，公共教育和讨论在提升算法认知中至关重要。了解算法，才能不被算法控制。</p>
 
-            <!-- 建议4 -->
-            <h3>4. 找回"深度时间"</h3>
+    <h3>3. 警惕消费主义的“情感包装”</h3>
 
-            <p>每天留出一段 <strong>不被打扰的深度时间</strong>——读一本书、写一段文字、和家人面对面聊聊天、或者只是安静地发一会儿呆。这些看似"低效"的时刻，恰恰是抵抗"脑腐"最有效的解药。</p>
+    <p>当一条短视频让你产生“买了这个我就治愈了”的冲动时，停下来想一想：我真正需要的是什么？是那个物件本身，还是被看见、被认可、被爱的感觉？如果是后者，扫码支付解决不了问题。消费主义最擅长的，就是把情感需求包装成商品。给自己一个“24小时冷静期”，很多冲动会自然消退。</p>
 
-            <!-- 建议5 -->
-            <h3>5. 审慎对待AI生成内容</h3>
+    <h3>4. 找回“深度时间”</h3>
 
-            <p>学会识别AI生成内容的标识。对来源不明、画面过于"完美"或"戏剧化"的内容保持警惕。不轻易转发未经核实的信息——<strong>每一次转发，都可能是在为虚假信息传播助力</strong>。</p>
+    <p>每天留出一段不被打扰的深度时间——读一本书、写一段文字、和家人面对面聊聊天、或者只是安静地发一会儿呆。这些看似“低效”的时刻，恰恰是抵抗“脑腐”最有效的解药。可以尝试每天设置一段“无屏时段”，哪怕只有30分钟。</p>
 
-            <!-- 建议6 -->
-            <h3>6. 关注青少年的数字环境</h3>
+    <h3>5. 审慎对待AI生成内容</h3>
 
-            <p>对于家长来说，主动了解孩子在刷什么、和谁互动，比简单没收手机更重要。关注平台的内容审核政策，举报不良内容。<strong>孩子需要的不是与世隔绝，而是在数字世界中行走的能力。</strong></p>
+    <p>学会识别AI生成内容的标识。对来源不明、画面过于“完美”或“戏剧化”的内容保持警惕。不轻易转发未经核实的信息——每一次转发，都可能是在为虚假信息传播助力。查标识、反向搜图、看权威源，是三个基本动作。</p>
 
-            <!-- ====== 六、结语 ====== -->
-            <h2>六、结语</h2>
+    <h3>6. 关注青少年的数字环境</h3>
 
-            <p>回到开头的问题：我们正在失去什么？</p>
+    <p>对于家长来说，主动了解孩子在刷什么、和谁互动，比简单没收手机更重要。关注平台的内容审核政策，举报不良内容。孩子需要的不是与世隔绝，而是在数字世界中行走的能力。共同观看、讨论、约定规则，比单方面禁止更有效。</p>
 
-            <p>我们正在失去 <strong>专注的能力、深度思考的习惯、不被算法左右的自由，以及面对面交流的耐心</strong>。</p>
+    <h3>7. 自救之外：平台、监管、学校与家庭的责任</h3>
 
-            <p>但这一切并非不可逆转。<strong>意识到问题，就是改变的开始</strong>。短视频本身不是敌人——它是一种工具，一种媒介。问题在于我们如何使用它，以及它如何通过算法使用我们。</p>
+    <p><strong>平台</strong>不能只以停留时长为王。应优化推荐指标，默认关闭个性化推荐，对未成年人和老年人模式做真正易用的保护。<strong>监管</strong>应推进算法审计、内容标识、虚假信息溯源，对恶意挑动对立和诱导消费的行为持续治理。<strong>学校</strong>应把媒介素养教育纳入课程，教孩子识别情绪操控、AI生成内容和消费陷阱。<strong>家庭</strong>应成为数字世界的陪练，而不是简单的执法者。</p>
 
-            <div class="three-questions">
-                <p>下一次，当你准备打开短视频App时，不妨先问自己三个问题：</p>
-                <p><span class="q">"我为什么打开它？"</span></p>
-                <p><span class="q">"我打算看多久？"</span></p>
-                <p><span class="q">"看完之后，我会变得更好，还是更空虚？"</span></p>
-            </div>
+    <h2>六、结语</h2>
 
-            <div class="closing-emphasis">
-                <strong>在算法面前，保持清醒，是这个时代最稀缺的能力，也是最值得修炼的能力。</strong>
-            </div>
+    <p>回到开头的问题：我们正在失去什么？</p>
 
-        </div>
-        <!-- /article-body -->
+    <p>我们正在失去专注的能力、深度思考的习惯、不被算法左右的自由，以及面对面交流的耐心。</p>
 
-    </main>
-    <!-- /reading-card -->
+    <p>但这一切并非不可逆转。意识到问题，就是改变的开始。短视频本身不是敌人——它是一种工具，一种媒介。问题在于我们如何使用它，以及它如何通过算法使用我们。</p>
 
-    <!-- ====== JavaScript ====== -->
-    <script>
-        (function() {
-            'use strict';
+    <p>下一次，当你准备打开短视频App时，不妨先问自己三个问题：</p>
 
-            // ----- DOM refs -----
-            const progressFill = document.getElementById('progressFill');
-            const backTopBtn = document.getElementById('back-top');
-            const card = document.querySelector('.reading-card');
+    <blockquote>
+      <p>“我为什么打开它？”</p>
+      <p>“我打算看多久？”</p>
+      <p>“看完之后，我会变得更好，还是更空虚？”</p>
+    </blockquote>
 
-            // ----- 阅读进度 -----
-            function updateProgress() {
-                const scrollY = window.scrollY;
-                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-                if (docHeight <= 0) {
-                    progressFill.style.width = '0%';
-                    return;
-                }
-                const progress = Math.min((scrollY / docHeight) * 100, 100);
-                progressFill.style.width = progress + '%';
-                // 更新 aria 属性
-                progressFill.parentElement.setAttribute('aria-valuenow', Math.round(progress));
-            }
+    <p>在算法面前，保持清醒，是这个时代最稀缺的能力，也是最值得修炼的能力。</p>
 
-            // ----- 返回顶部 显示/隐藏 -----
-            function toggleBackTop() {
-                const scrollY = window.scrollY;
-                if (scrollY > 180) {
-                    backTopBtn.classList.add('visible');
-                } else {
-                    backTopBtn.classList.remove('visible');
-                }
-            }
+    <hr class="divider">
 
-            // ----- 返回顶部 点击平滑滚动 -----
-            function scrollToTop() {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+    <p class="note"><strong>本文数据与文献说明：</strong><br>
+      本文主要数据与案例来源包括：《中国网络视听发展研究报告（2026）》、公安部公布的典型案例、北京市网信办专项整治通报、“清朗·整治恶意挑动负面情绪问题”专项行动、牛津大学出版社2024年度词汇、发表于NeuroImage的相关研究、涵盖16项研究及15821名个体的元分析、清华大学研究团队相关研究、微短剧行业报告等。部分研究为相关性证据，不宜简单理解为直接因果。</p>
 
-            // ----- 事件绑定 (带节流) -----
-            let ticking = false;
+  </article>
+</main>
 
-            function onScroll() {
-                if (!ticking) {
-                    window.requestAnimationFrame(function() {
-                        updateProgress();
-                        toggleBackTop();
-                        ticking = false;
-                    });
-                    ticking = true;
-                }
-            }
+<!-- 返回顶部按钮 -->
+<button id="backToTop" aria-label="返回顶部">↑</button>
 
-            window.addEventListener('scroll', onScroll, { passive: true });
-            window.addEventListener('resize', updateProgress, { passive: true });
+<script>
+/* ============================================================
+   JS 区块
+   ============================================================ */
 
-            backTopBtn.addEventListener('click', scrollToTop);
+(function () {
+  'use strict';
 
-            // ----- 初始化 -----
-            // 页面加载完成后立即计算一次，确保进度条和按钮状态正确
-            window.addEventListener('load', function() {
-                updateProgress();
-                toggleBackTop();
-            });
+  var progressBar = document.getElementById('progress-bar');
+  var backToTop = document.getElementById('backToTop');
 
-            // 如果页面已经加载完成（比如脚本延迟执行），立即执行
-            if (document.readyState === 'complete') {
-                updateProgress();
-                toggleBackTop();
-            } else {
-                // 额外兜底：DOM 内容加载后先算一次
-                document.addEventListener('DOMContentLoaded', function() {
-                    updateProgress();
-                    toggleBackTop();
-                });
-            }
+  /* ---------- 1. 自动计算阅读时长（平均 300 字/分钟） ---------- */
+  function calcReadTime() {
+    var body = document.getElementById('article-body');
+    if (!body) return;
+    // 取纯文本，去除所有空白字符后统计字数
+    var text = (body.innerText || body.textContent || '').replace(/\s/g, '');
+    var minutes = Math.max(1, Math.round(text.length / 300)); // 不足 1 分钟显示 1 分钟
+    var el = document.getElementById('read-time');
+    if (el) el.textContent = minutes + '分钟';
+  }
 
-            // 小细节：点击返回顶部后，按钮会立即隐藏（因为 scroll 事件会触发）
-            // 但为了更平滑，也可以主动隐藏
-            backTopBtn.addEventListener('click', function() {
-                // 立即隐藏，等滚动触发后重新判断
-                backTopBtn.classList.remove('visible');
-            });
+  /* ---------- 2. 滚动相关：进度条 + 返回顶部按钮显隐 ---------- */
+  function onScroll() {
+    var scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
 
-        })();
-    </script>
+    // 阅读进度条宽度
+    var percent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progressBar.style.width = Math.min(100, Math.max(0, percent)) + '%';
+
+    // 返回顶部按钮：滚动距离 > 300px 时渐显
+    if (scrollTop > 300) {
+      backToTop.classList.add('visible');
+    } else {
+      backToTop.classList.remove('visible');
+    }
+  }
+
+  /* ---------- 3. 返回顶部：平滑滚动 ---------- */
+  backToTop.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  /* ---------- 4. 初始化 ---------- */
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      calcReadTime();
+      onScroll();
+    });
+  } else {
+    calcReadTime();
+    onScroll();
+  }
+})();
+</script>
 
 </body>
 </html>

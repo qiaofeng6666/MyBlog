@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3600亿注资中央金融企业：一场“晴天修屋顶”的战略大棋</title>
+    <style>
+        /* ============================================================
+           CSS 区块
+           ============================================================ */
+
+        /* ---------- 全局重置 & 基础 ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #faf9f8;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* ---------- 阅读进度条 ---------- */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: #2c2c2c;
+            z-index: 9999;
+            width: 0%;
+            transition: width 0.08s linear;
+            will-change: width;
+        }
+
+        /* ---------- 卡片容器 ---------- */
+        .card {
+            max-width: 720px;
+            width: 100%;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            border-radius: 0;
+            padding: 2rem 2.5rem;
+            /* 入场动画：位移 + 透明度 */
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+            will-change: transform, opacity;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ---------- 文章标题 ---------- */
+        .article-title {
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: #2c2c2c;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+
+        /* ---------- 元数据 ---------- */
+        .meta {
+            font-size: 0.9rem;
+            color: #6b6b6b;
+            text-align: center;
+            letter-spacing: 0.5px;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #efefef;
+            margin-bottom: 2rem;
+        }
+        .meta span {
+            margin: 0 0.1rem;
+        }
+        .meta .sep {
+            margin: 0 0.35rem;
+            color: #b0b0b0;
+        }
+
+        /* ---------- 正文排版 ---------- */
+        .article-body {
+            color: #2c2c2c;
+        }
+
+        .article-body p {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            color: #2c2c2c;
+        }
+
+        .article-body h2 {
+            font-weight: 700;
+            font-size: 1.45rem;
+            margin-top: 2.2rem;
+            margin-bottom: 1rem;
+            color: #2c2c2c;
+            line-height: 1.4;
+            letter-spacing: -0.01em;
+        }
+        .article-body h2:first-of-type {
+            margin-top: 0;
+        }
+
+        /* 子标题（用 strong 加粗的段落开头） */
+        .article-body .sub-head {
+            font-weight: 600;
+            color: #2c2c2c;
+        }
+
+        /* 引用块 */
+        .article-body blockquote {
+            margin-left: 0;
+            padding-left: 1.5rem;
+            border-left: 4px solid #dcdcdc;
+            color: #5a5a5a;
+            font-style: italic;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            background: transparent;
+        }
+        .article-body blockquote p {
+            margin-bottom: 0;
+            font-size: 1.05rem;
+            color: #5a5a5a;
+            font-style: italic;
+        }
+
+        /* ---------- 表格 ---------- */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 1.5rem 0 1.8rem 0;
+            border-radius: 0;
+            border: 1px solid #eaeaea;
+        }
+        .table-wrapper table {
+            width: 100%;
+            min-width: 520px;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .table-wrapper table thead {
+            background: #f5f4f2;
+        }
+        .table-wrapper table th {
+            text-align: left;
+            padding: 0.7rem 1rem;
+            font-weight: 600;
+            color: #2c2c2c;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+        }
+        .table-wrapper table td {
+            padding: 0.7rem 1rem;
+            border-bottom: 1px solid #eee;
+            color: #2c2c2c;
+            vertical-align: top;
+            line-height: 1.6;
+        }
+        .table-wrapper table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .table-wrapper table tbody tr:last-child {
+            background: #faf9f8;
+            font-weight: 600;
+        }
+        .table-wrapper table tbody tr:last-child td {
+            border-top: 1px solid #ddd;
+        }
+
+        /* ---------- 返回顶部按钮 ---------- */
+        #back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #2c2c2c;
+            color: #fff;
+            border: none;
+            font-size: 1.3rem;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            user-select: none;
+            padding: 0;
+        }
+        #back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        #back-to-top:hover {
+            transform: scale(1.05);
+            background: #1a1a1a;
+        }
+        #back-to-top:active {
+            transform: scale(0.95);
+        }
+        #back-to-top svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* ---------- 响应式规则 ---------- */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.6rem;
+            }
+            .card {
+                padding: 1rem 1.2rem;
+                border-radius: 0;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            }
+            .article-title {
+                font-size: 1.8rem;
+            }
+            .article-body p {
+                font-size: 1rem;
+                line-height: 1.75;
+                margin-bottom: 1.2rem;
+            }
+            .article-body blockquote {
+                padding-left: 1rem;
+                font-size: 0.95rem;
+            }
+            .article-body blockquote p {
+                font-size: 0.95rem;
+            }
+            .article-body h2 {
+                font-size: 1.2rem;
+                margin-top: 1.8rem;
+                margin-bottom: 0.8rem;
+            }
+            .meta {
+                font-size: 0.8rem;
+                padding-bottom: 1rem;
+                margin-bottom: 1.5rem;
+            }
+            .table-wrapper table {
+                font-size: 0.85rem;
+                min-width: 440px;
+            }
+            .table-wrapper table th,
+            .table-wrapper table td {
+                padding: 0.5rem 0.7rem;
+            }
+            #back-to-top {
+                bottom: 1.2rem;
+                right: 1.2rem;
+                width: 40px;
+                height: 40px;
+                font-size: 1.1rem;
+            }
+            #back-to-top svg {
+                width: 18px;
+                height: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 0.8rem 0.9rem;
+            }
+            .article-title {
+                font-size: 1.5rem;
+            }
+            .article-body p {
+                font-size: 0.95rem;
+            }
+            .article-body blockquote {
+                padding-left: 0.8rem;
+                font-size: 0.9rem;
+            }
+            .article-body blockquote p {
+                font-size: 0.9rem;
+            }
+            .article-body h2 {
+                font-size: 1.05rem;
+            }
+            .table-wrapper table {
+                font-size: 0.78rem;
+                min-width: 360px;
+            }
+            .table-wrapper table th,
+            .table-wrapper table td {
+                padding: 0.4rem 0.5rem;
+            }
+            .meta {
+                font-size: 0.7rem;
+                letter-spacing: 0.3px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+    HTML 区块
+    ============================================================ -->
+
+    <!-- 阅读进度条 -->
+    <div id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+    <!-- 主卡片 -->
+    <main class="card" id="article-card">
+
+        <!-- 文章标题 -->
+        <h1 class="article-title">3600亿注资中央金融企业：一场“晴天修屋顶”的战略大棋</h1>
+
+        <!-- 元数据 -->
+        <div class="meta">
+            <span>✍️ 博主</span>
+            <span class="sep">｜</span>
+            <span>📅 2026年9月07日</span>
+            <span class="sep">｜</span>
+            <span>⏳ <span id="reading-time">1</span> 分钟</span>
+        </div>
+
+        <!-- 正文 -->
+        <div class="article-body" id="article-body">
+
+            <!-- 开篇引用 -->
+            <blockquote>
+                <p>2026年9月6日，中国金融界迎来一则重磅消息——财政部联合中国烟草总公司等，向农业银行、工商银行、中国进出口银行、中国信保、中国再保、中国人寿、中国太平、中国人保等8家中央金融企业合计注资3600亿元。其中，财政部通过发行特别国债出资3000亿元，中国烟草总公司及相关子公司出资600亿元。</p>
+            </blockquote>
+
+            <p>这不是“缺钱救急”，而是一场“未雨绸缪”的前瞻性战略布局。8家企业经营稳健，核心资本充足率均远高于监管红线。</p>
+
+            <p>但这场“雨”到底是什么？为什么偏偏在美联储议息会议前10天出手？这3600亿背后，究竟是一盘怎样的棋？</p>
+
+            <!-- 一、 -->
+            <h2>一、为什么是现在？——与美联储加息的微妙关联</h2>
+
+            <p>注资公告发布于9月6日，而大洋彼岸的美联储正处在一场关键议息会议的前夜。9月15日至16日，美联储将举行年内最胶着的一次议息会议。截至9月7日，CME“美联储观察”工具显示：美联储9月维持利率不变的概率为41.7%，累计加息25个基点的概率为58.3%。</p>
+
+            <p>注资与美联储加息之间，存在一条清晰的逻辑链。</p>
+
+            <p><strong>加息预期从何而来？</strong><br />
+            2026年以来，美联储加息预期经历了剧烈波动。8月28日，美联储主席凯文·沃什在杰克逊霍尔全球央行年会上发表就任后首次主旨演讲，重申2%通胀目标“坚定、固定”，称当前金融条件“难言具有限制性”。沃什讲话后，CME美联储观察工具显示的9月加息概率从约35%跳升至60%。</p>
+
+            <p>紧接着，9月4日公布的美国8月非农就业报告再添一把火——新增非农就业16.2万人，远超市场预期的5.5万人，6月、7月数据合计上修5.5万人。就业数据公布后，9月加息概率进一步升至60%以上。</p>
+
+            <p><strong>注资的战略窗口——在外部冲击到来前先“筑墙”</strong><br />
+            9月6日注资公告发布，距离美联储议息会议仅剩10天。华泰期货研报明确指出：“政策力度的边界条件在9月美联储议息——若美联储转鹰，国内降准降息空间受约束；若转鸽，财政货币协同想象空间打开。”</p>
+
+            <p>当前中美利差已深度倒挂，10年期国债利差倒挂至约304个基点（即中国利率比美国低约3个百分点）。若美联储加息而中国延续适度宽松，利差将进一步扩大，可能加剧汇率与资本流动压力。</p>
+
+            <p>在此背景下提前注资加厚银行资本，相当于在外部冲击到来之前筑牢金融体系的“防波堤”——即使外资流出、汇率波动，国内银行体系依然有足够的资本缓冲来维持信贷稳定。</p>
+
+            <p><strong>为“以我为主”的货币政策争取空间</strong><br />
+            中国央行多次强调货币政策“坚持以我为主”。但“以我为主”的前提是金融体系足够稳健。</p>
+
+            <p>此次注资后，银行资本充足率提升，即使美联储加息导致外部环境收紧，中国仍有空间继续实施适度宽松的货币政策。市场预期降准和结构性降息有望落地。换句话说，注资是在为“以我为主”的货币政策购买一份“保险”。</p>
+
+            <!-- 二、 -->
+            <h2>二、3600亿怎么分？——一张表看懂</h2>
+
+            <p>8家机构的具体获注资金额及方式如下：</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>机构名称</th>
+                            <th>获注资金额</th>
+                            <th>注资方式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>农业银行</td>
+                            <td>不超过1600亿元</td>
+                            <td>定向增发A股（财政部1300亿+烟草系300亿）</td>
+                        </tr>
+                        <tr>
+                            <td>工商银行</td>
+                            <td>不超过1000亿元</td>
+                            <td>定向增发A股（财政部700亿+烟草系300亿）</td>
+                        </tr>
+                        <tr>
+                            <td>中国人寿集团</td>
+                            <td>350亿元</td>
+                            <td>财政部直接注资</td>
+                        </tr>
+                        <tr>
+                            <td>中国人保</td>
+                            <td>不超过150亿元</td>
+                            <td>财政部定向增发A股</td>
+                        </tr>
+                        <tr>
+                            <td>中国太平</td>
+                            <td>70亿元</td>
+                            <td>财政部直接注资</td>
+                        </tr>
+                        <tr>
+                            <td>中国再保</td>
+                            <td>30亿元</td>
+                            <td>财政部认购内资股</td>
+                        </tr>
+                        <tr>
+                            <td>中国进出口银行</td>
+                            <td>300亿元</td>
+                            <td>财政部直接注资</td>
+                        </tr>
+                        <tr>
+                            <td>中国出口信用保险公司</td>
+                            <td>100亿元</td>
+                            <td>财政部直接注资</td>
+                        </tr>
+                        <tr>
+                            <td><strong>合计</strong></td>
+                            <td><strong>3600亿元</strong></td>
+                            <td>——</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p>烟草系600亿元的具体分配：中国烟草总公司同时认购工行、农行各100亿元，其余由上海烟草、云南中烟、湖南中烟、湖南烟草、江苏烟草、浙江烟草、湖北烟草、北京烟草及双维投资等分别认购。</p>
+
+            <p><strong>为什么农行拿得最多（1600亿）而工行只有1000亿？</strong> 答案藏在数据里。截至2026年6月末，农行核心一级资本充足率为10.80%，在国有六大行中处于倒数第二，而工行为13.21%。农行近年信贷、资产规模与贷款投放保持较快增长，业务扩张对资本消耗更大。据测算，本次发行后农行核心一级资本充足率将提升约0.61个百分点，工行将提升约0.34个百分点。</p>
+
+            <!-- 三、 -->
+            <h2>三、为什么说这是“好事”？</h2>
+
+            <p><strong>对金融机构而言，</strong>工行、农行核心一级资本充足率将分别提升约0.34、0.61个百分点。资本厚了，放贷款的“本钱”多了，抗风险能力更强了。保险公司偿付能力补强，保单履约更稳；险企30%的资金可入市，资本增厚后更有底气进行长期权益投资。政策性金融机构——进出口银行和中国信保——获得注资后，服务外贸、支持企业“走出去”的能力显著提升。</p>
+
+            <p><strong>对实体经济而言，</strong>据天府立言金融研究院院长曾刚测算，3000亿元核心一级资本可撬动约4万亿元资产扩张；业内人士另测算，2000亿元注资可撬动约2万亿元信贷增量（不同口径均指向显著的乘数效应）。这些资金将重点投向科技创新、绿色发展、普惠小微等国家战略领域。</p>
+
+            <p><strong>对国家金融体系而言，</strong>这是一次“全覆盖”行动。2025年财政部已通过5000亿元特别国债注资中行、建行、交行、邮储四家国有大行。如今工行、农行接力入列，六大国有银行全部完成财政专项注资，合计融资7800亿元。更值得关注的是，本轮首次将保险集团和政策性金融机构纳入注资范围，实现了“银行+保险+政策性”三路并进。</p>
+
+            <!-- 四、 -->
+            <h2>四、掌声背后的冷思考</h2>
+
+            <p><strong>短期市场反应——为什么股价反而跌了？</strong><br />
+            消息公布后，银行、保险板块集体走弱。中国人寿、中国人保、中国太平股价均下跌约2%，工行、农行等普遍回软1-3%。</p>
+
+            <p>为什么会跌？首先是预期差——银行注资本身已被市场充分定价（六大行股价9月初刚创历史新高），但注资规模可能低于部分投资者预期。其次是短期摊薄——定向增发会扩大股本，短期摊薄每股收益。最后是 “利好出尽” ——市场有“买预期、卖事实”的习惯，消息落地反而引发获利了结。</p>
+
+            <p><strong>真正的约束不在供给，而在需求？</strong><br />
+            有专家指出，注资的短期影响可能非常有限。资金并未直接流入实体经济，而目前银行放贷的主要制约因素并非资本不足，而是实体经济的信贷需求不足。若企业预期回报率低迷、投资意愿不振，资本补充后可能面临“有水无渠”的窘境。</p>
+
+            <p>这并非否定注资的意义，而是提醒：资本只是必要条件，而非充分条件。 注资解决了“能不能贷”的问题，但“愿不愿借”还需要财政政策、产业政策与企业信心的协同发力。</p>
+
+            <p><strong>财政压力问题——钱从哪里来？</strong><br />
+            3000亿元来自特别国债，本质上是国家借债来注资。虽然特别国债不计入财政赤字，但仍需未来偿还，最终由全体纳税人承担。这是否是最优的资源配置方式？值得持续关注。</p>
+
+            <!-- 五、 -->
+            <h2>五、接下来会发生什么？——短期与长期展望</h2>
+
+            <p><strong>短期（3-12个月）：阵痛难免</strong><br />
+            对股市，短期可能继续震荡，银行、保险板块因定增摊薄预期可能承压。但参考2025年经验：首批四家银行增资公告后，股价陆续创新高——中行、建行、邮储、交通股价分别累计上涨6%、14%、10%、14%（依次对应）。历史可能重演。主要金融机构多为A股权重股，资本实力增强有助于提振投资者信心。</p>
+
+            <p>对信贷，资本补充后银行放贷能力增强，但短期受制于实体经济信贷需求，效果可能不会立竿见影。预计3-6个月内，科技创新、绿色发展、普惠小微等领域的信贷投放会逐步增加。</p>
+
+            <p>对债券市场，3000亿元特别国债即将发行，可能对债券市场形成一定供给压力。</p>
+
+            <p>对普通人，这笔钱不会直接打进你的账户，但它会让你银行卡里的存款、手里的保单，多了一层“国家信用”的隐性背书。短期内贷款利率、保费不会有明显变化。</p>
+
+            <p><strong>长期（1-5年）：这是一盘“大棋”</strong></p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>注资对象</th>
+                            <th>金额</th>
+                            <th>特点</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2025年</td>
+                            <td>中行、建行、交行、邮储</td>
+                            <td>5200亿元</td>
+                            <td>首批四大行</td>
+                        </tr>
+                        <tr>
+                            <td>2026年</td>
+                            <td>工行、农行+保险+政策性</td>
+                            <td>3600亿元</td>
+                            <td>扩围至全体系</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p>合计7800亿元注入六大行，这是建国以来最大规模的金融机构集中注资行动。</p>
+
+            <p>为什么偏偏是这两年？除了外部环境复杂多变外，还有内部压力：净息差持续收窄，银行靠利润存钱（内源资本积累）的速度变慢了；全球系统重要性银行面临更高的附加资本要求和2028年TLAC达标压力；保险业在服务养老、健康等国家战略中资本消耗也明显加大。</p>
+
+            <p><strong>保险机构首次被纳入——为什么是现在？</strong><br />
+            险企30%资金可入市，资本增厚后可加大权益类长期投资。保险资金具有期限长、稳定性强的优势，可为实体企业提供长期资本，同时能够对冲国债收益率走低给险企偿付能力带来的压力。</p>
+
+            <p><strong>从“救急”到“布局”——思维方式的根本转变</strong><br />
+            过去注资往往是“出了问题再补”（如2008年金融危机后的银行注资）。而这次是在一切安好时主动加厚“家底” 。这种“晴天修屋顶”的思维方式，意味着国家金融治理从“被动应对”转向“主动布局”。</p>
+
+            <!-- 结语 -->
+            <h2>结语</h2>
+
+            <p>3600亿注资，不是救火队的匆匆赶来，而是守城人的提前筑墙。3000亿元核心一级资本撬动约4万亿元资产扩张——这是名副其实的“四两拨千斤”。</p>
+
+            <p>短期有阵痛，长期是利好。短期股价承压、股本摊薄不可避免；但长期看，六大行全部完成注资、保险和政策性机构首次纳入，整个金融体系的韧性和服务能力将大幅提升。对国家、企业、个人都是“定心丸”——国家稳金融的决心用真金白银来证明；企业融资环境将改善；个人的存款和保单更安全。</p>
+
+            <p>这是中国金融史上一次里程碑式的资本补充行动，标志着国有金融机构从“规模扩张”转向“质量提升”的新阶段。短期市场波动不改长期价值——美联储加息与否，影响的只是节奏，而非方向。家底厚了，底气才足——这对国家如是，对金融体系如是，对你我亦如是。</p>
+
+        </div>
+        <!-- /article-body -->
+
+    </main>
+    <!-- /card -->
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" aria-label="返回顶部">
+        <svg viewBox="0 0 24 24">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    </button>
+
+    <!-- ============================================================
+    JS 区块
+    ============================================================ -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ---------- 1. 阅读时长计算 ----------
+            (function calcReadingTime() {
+                const body = document.getElementById('article-body');
+                if (!body) return;
+                // 获取所有文本节点内容（排除脚本、样式等）
+                const text = body.textContent || '';
+                // 统计中文字符数（粗略估算，包含数字、标点等）
+                const charCount = text.replace(/\s+/g, '').length;
+                // 平均300字/分钟，向上取整，最少1分钟
+                const minutes = Math.max(1, Math.ceil(charCount / 300));
+                const el = document.getElementById('reading-time');
+                if (el) el.textContent = minutes;
+            })();
+
+            // ---------- 2. 阅读进度条 ----------
+            (function initProgressBar() {
+                const bar = document.getElementById('progress-bar');
+                if (!bar) return;
+
+                function updateProgress() {
+                    const scrollY = window.scrollY;
+                    const docHeight = document.documentElement.scrollHeight;
+                    const winHeight = window.innerHeight;
+                    const maxScroll = Math.max(docHeight - winHeight, 1);
+                    const progress = Math.min(scrollY / maxScroll, 1);
+                    const pct = (progress * 100).toFixed(2);
+                    bar.style.width = pct + '%';
+                    bar.setAttribute('aria-valuenow', pct);
+                }
+
+                // 节流优化
+                let ticking = false;
+                function onScroll() {
+                    if (!ticking) {
+                        window.requestAnimationFrame(function() {
+                            updateProgress();
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                }
+
+                window.addEventListener('scroll', onScroll, { passive: true });
+                window.addEventListener('resize', updateProgress, { passive: true });
+                // 初始计算
+                updateProgress();
+            })();
+
+            // ---------- 3. 返回顶部按钮 ----------
+            (function initBackToTop() {
+                const btn = document.getElementById('back-to-top');
+                if (!btn) return;
+
+                const SHOW_THRESHOLD = 300;
+
+                function toggleButton() {
+                    const scrollY = window.scrollY;
+                    if (scrollY > SHOW_THRESHOLD) {
+                        btn.classList.add('visible');
+                    } else {
+                        btn.classList.remove('visible');
+                    }
+                }
+
+                function scrollToTop() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                }
+
+                // 监听滚动
+                let ticking = false;
+                function onScroll() {
+                    if (!ticking) {
+                        window.requestAnimationFrame(function() {
+                            toggleButton();
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                }
+
+                window.addEventListener('scroll', onScroll, { passive: true });
+                window.addEventListener('resize', toggleButton, { passive: true });
+
+                btn.addEventListener('click', scrollToTop);
+
+                // 初始状态
+                toggleButton();
+            })();
+
+        })();
+    </script>
+
+</body>
+</html>
